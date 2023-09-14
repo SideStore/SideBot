@@ -22,6 +22,7 @@ class SideBot(commands.Bot):
     async def setup_hook(self) -> None:
         cogs = list(Path("modules").glob("*.py"))
         for cog in cogs:
+            print(f"Loading {cog.name.split('.')[0]}")
             await self.load_extension(f"modules.{cog.name.split('.')[0]}")
 
         guild = discord.Object(856315760224894986)
