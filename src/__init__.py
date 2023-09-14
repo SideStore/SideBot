@@ -4,11 +4,6 @@ from pathlib import Path
 import discord
 from discord.ext import commands
 
-with open(".env", "r", encoding="utf-8") as env:
-    conf = {k: v for line in env
-            if (k := line.strip().split("=", 1)[0]) and \
-               (v := line.strip().split("=", 1)[1])}
-
 
 class SideBot(commands.Bot):
     "Custom SideBot class to simplify start up"
@@ -42,6 +37,3 @@ class SideBot(commands.Bot):
         "Handle unhandled command errors"
         print(ctx)
         print(error)
-
-
-SideBot().run(conf['DTOKEN'])
