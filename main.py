@@ -1,16 +1,18 @@
+# pylint: disable=C0114
 from pathlib import Path
 
 import discord
 from discord.ext import commands
 
-with open(".env", "r") as env:
+with open(".env", "r", encoding="utf-8") as env:
     conf = {k: v for line in env
             if (k := line.strip().split("=", 1)[0]) and \
                (v := line.strip().split("=", 1)[1])}
 
 
 class SideBot(commands.Bot):
-    def __init__(self, *args, **kwargs):
+    "Custom SideBot class to simplify start up"
+    def __init__(self):
         intents = discord.Intents.all()
         intents.message_content = True
 
@@ -20,6 +22,7 @@ class SideBot(commands.Bot):
         self.owner_id = 195864152856723456
 
     async def setup_hook(self) -> None:
+        "Set up cogs and app commands"
         cogs = list(Path("modules").glob("*.py"))
         for cog in cogs:
             print(f"Loading {cog.name.split('.')[0]}")
@@ -30,13 +33,15 @@ class SideBot(commands.Bot):
         await self.tree.sync(guild=guild)
 
     async def on_ready(self):
+        "Handle bot ready status"
         print(f'Logged in as {self.user} (ID: {self.user.id})')
         print('------')
 
+    # pylint: disable=W0221
     async def on_command_error(self, ctx, error):
+        "Handle unhandled command errors"
         print(ctx)
         print(error)
 
 
 SideBot().run(conf['DTOKEN'])
-
