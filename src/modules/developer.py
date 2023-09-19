@@ -31,7 +31,7 @@ class Developer(Cog):
     async def load(self, inter: Interaction, cog: str):
         "Loads `cog`'s extension into the bot."
         try:
-            await self.bot.load_extension(f"modules.{cog}")
+            await self.bot.load_extension(f"src.modules.{cog}")
             return await inter.response.send_message(f"Loaded {cog}!",
                                                            ephemeral=True)
         except (ExtensionAlreadyLoaded, ExtensionNotFound) as err:
@@ -51,7 +51,7 @@ class Developer(Cog):
         if cog in ["developer", "admin"]:
             return await inter.response.send_message(f"Cowardly refusing to unload {cog}!", ephemeral=True)
         try:
-            await self.bot.unload_extension(f"modules.{cog}")
+            await self.bot.unload_extension(f"src.modules.{cog}")
             return await inter.response.send_message(f"Unloaded {cog}!", ephemeral=True)
         except ExtensionNotLoaded:
             return await inter.response.send_message(f"Failed to unload non-loaded {cog}!", ephemeral=True)
@@ -62,7 +62,7 @@ class Developer(Cog):
     async def reload(self, inter: Interaction, cog: str):
         "Reload `cog`'s extension file."
         try:
-            await self.bot.reload_extension(f"modules.{cog}")
+            await self.bot.reload_extension(f"src.modules.{cog}")
             return await inter.response.send_message(f"Reloaded {cog}!",
                                                      ephemeral=True)
         except (ExtensionNotLoaded, ExtensionNotFound) as err:
