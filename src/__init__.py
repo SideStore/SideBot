@@ -26,7 +26,7 @@ class SideBot(commands.Bot):
             print(f"Loading {name}")
             await self.load_extension(f"src.modules.{name}")
 
-        guild = discord.Object(856315760224894986)
+        guild = discord.Object(949183273383395328)
         self.tree.clear_commands(guild=guild)
         await self.tree.sync(guild=guild)
 
