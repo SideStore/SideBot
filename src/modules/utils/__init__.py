@@ -49,7 +49,7 @@ class Utility(Cog):
         "Auto pin and respond to user message in support forum thread"
         if thread.parent_id not in [1020114888720384032, 1027594394477539410]:
             return
-        start = await thread.fetch_message(thread.id)
+        start = [message async for message in thread.history(limit=1, oldest_first=True)][0]
         await start.pin()
         embed = discord.Embed(title="Support Ticket",
                               description="We want to help you to the best of our ability, but first we have to ask" +
