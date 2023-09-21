@@ -18,13 +18,13 @@ class SideBot(commands.Bot):
 
     async def setup_hook(self) -> None:
         "Set up cogs and app commands"
-        cogs = list(Path("src/modules").glob("*.py"))
+        cogs = list(Path("src/modules").glob("*"))
+        cogs = [c.name.split('.')[0] for c in cogs
+                if (c.is_file() and c.name != "__init__.py" and c.name.endswith(".py"))
+                or (c.is_dir() and c.name != '__pycache__')]
         for cog in cogs:
-            name = cog.name.split('.')[0]
-            if name == '__init__':
-                continue
-            print(f"Loading {name}")
-            await self.load_extension(f"src.modules.{name}")
+            print(f"Loading {cog}!")
+            await self.load_extension(f"src.modules.{cog}")
 
         guild = discord.Object(949183273383395328)
         self.tree.clear_commands(guild=guild)
