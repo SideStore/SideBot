@@ -1,4 +1,4 @@
-# pylint: disable=C0114
+# pylint: disable=C0103,C0114
 import discord
 from discord.ext.commands import Bot, when_mentioned_or
 
@@ -49,6 +49,7 @@ class SideBot(Bot):
 
     @classmethod
     def from_env(cls, path: str = ".env"):
+        "Loads the bot from a .env file with the proper configuration"
         with open(path, "r", encoding="utf-8") as env:
             conf = {k: v for line in env
                     if (k := line.strip().split("=", 1)[0]) and \

@@ -13,7 +13,7 @@ from .basecog import BaseCog, Bot
 class Developer(BaseCog):
     "Developer cog with developer only commands"
     def __init__(self, bot: Bot):
-        self.bot = bot
+        super().__init__(bot)
         self.description = "This is for ny only"
 
     async def cog_before_invoke(self, ctx):

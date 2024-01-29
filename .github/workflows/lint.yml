@@ -31,7 +31,7 @@ jobs:
     - name: Install pip Dependencies
       if: steps.cache.outputs.cache-hit != 'true'
       run: |
-        pip install -r requirements.txt
+        pip install .[dev]
 
     - name: Run Linter
       run: pylint src

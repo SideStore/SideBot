@@ -3,14 +3,15 @@ import asyncio
 from datetime import timedelta
 
 from discord.ext import tasks
-from discord import Interaction, Member, TextChannel
+from discord import Interaction, Member, Message, TextChannel
 from discord.app_commands import command, describe, checks, errors
 
 from .basecog import BaseCog, Bot
 
 
 class SpamMessage:
-    __slots__ = ('i')
+    "A message representation"
+    __slots__ = ('i',)
     def __init__(self, i: int):
         self.i = i
 
@@ -19,6 +20,7 @@ class SpamMessage:
 
 
 class SpamChannel:
+    "A channel representation that holds messages"
     __slots__ = ('i', 'messages')
     def __init__(self, i: int, messages: list[SpamMessage]):
         self.i = i
@@ -28,11 +30,13 @@ class SpamChannel:
         return f"SpamChannel(i={self.i}, messages={len(self.messages)})"
 
     def get_message(self, i: int) -> SpamMessage | None:
+        "Gets the message given the id, otherwise returns None"
         m = [m for m in self.messages if m.i == i]
         return None if len(m) == 0 else m[0]
 
 
 class SpamUser:
+    "A user representation that holds channels"
     __slots__ = ('i', 'channels')
     def __init__(self, i: int, channels: list[SpamChannel]):
         self.i = i
@@ -42,17 +46,17 @@ class SpamUser:
         return f"SpamUser(i={self.i}, channels={len(self.channels)})"
 
     def get_channel(self, i: int) -> SpamChannel | None:
+        "Gets the channel given the id, otherwise returns None"
         c = [c for c in self.channels if c.i == i]
         return None if len(c) == 0 else c[0]
-        
 
 
 class Admin(BaseCog):
     "Admin cog with commands for moderation"
     def __init__(self, bot: Bot):
-        self.bot = bot
+        super().__init__(bot)
         self.spammers = []
-        self.clear_spammers.start()
+        self.clear_spammers.start() # pylint: disable=E1101
         self.description = "This is the moderation cog"
 
     @command(name="clean", description="Clean messages from channel")
@@ -87,16 +91,19 @@ class Admin(BaseCog):
 
     @tasks.loop(minutes=30)
     async def clear_spammers(self):
+        "Clears the current 'spammer' list"
         print(self.spammers)
         self.spammers = []
         print("Cleared spammers")
 
     @BaseCog.listener()
-    async def on_message(self, message):
+    async def on_message(self, message: Message):
+        "Handle messages to detect for spam"
         if self.bot.user is None or message.guild is None or message.author.id == self.bot.user.id:
             return
         if message.author.id not in [su.i for su in self.spammers]:
-            self.spammers.append(SpamUser(message.author.id, [SpamChannel(message.channel.id, [SpamMessage(message.id)])]))
+            self.spammers.append(SpamUser(message.author.id,
+                                          [SpamChannel(message.channel.id, [SpamMessage(message.id)])]))
             return
         cur = [su for su in self.spammers if su.i == message.author.id][0]
         curch = cur.get_channel(message.channel.id)
@@ -106,18 +113,22 @@ class Admin(BaseCog):
             cur.channels.append(SpamChannel(message.channel.id, [SpamMessage(message.id)]))
 
         if len(cur.channels) >= 4:
-            print(f"Spammer alert! {message.author.name} has sent messages to {len(cur.channels)} different channels recently!")
-            try:
-                await message.author.timeout(timedelta(seconds=30), reason=f"For spamming {len(cur.channels)} channels")
-                #await message.author.timeout(timedelta(days=7), reason=f"For spamming {len(cur.channels)} channels")
-            except:
-                pass
+            print(f"Spammer alert! {message.author.name} has sent "
+                  f"messages to {len(cur.channels)} different channels recently!")
+            await message.author.timeout(timedelta(seconds=30),
+                                         reason=f"For spamming {len(cur.channels)} channels")
             del_chans = []
             for channel in cur.channels:
                 chan = self.bot.get_channel(channel.i)
-                if isinstance(chan, TextChannel): del_chans.append(chan.delete_messages([chan.get_partial_message(msg.i) for msg in channel.messages]))
+                if isinstance(chan, TextChannel):
+                    del_chans.append(
+                        chan.delete_messages(
+                            [chan.get_partial_message(msg.i) for msg in channel.messages]
+                        )
+                    )
             await asyncio.gather(*del_chans)
-            #await message.channel.send(f"Spammer alert! {message.author.name} has sent messages to {len(cur)} different channels recently!", delete_after=5)
+            #await message.channel.send(f"Spammer alert! {message.author.name}
+            #has sent messages to {len(cur)} different channels recently!", delete_after=5)
             self.spammers.pop(self.spammers.index(cur))
         print(self.spammers)
 
