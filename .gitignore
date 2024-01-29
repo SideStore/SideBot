@@ -55,6 +55,7 @@ dkms.conf
 *.swp
 
 # Project specific
+dist/
 .venv
 .env*
 tags

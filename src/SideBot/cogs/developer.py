@@ -4,11 +4,13 @@ from typing import Optional, Literal
 from discord import Object, Interaction, Forbidden, NotFound, HTTPException
 from discord.app_commands import command as acommand
 from discord.app_commands import errors
-from discord.ext.commands import Bot, Cog, command, Context, Greedy, guild_only
+from discord.ext.commands import command, Context, Greedy, guild_only
 from discord.ext.commands import ExtensionNotLoaded, ExtensionAlreadyLoaded, ExtensionNotFound
 
+from .basecog import BaseCog, Bot
 
-class Developer(Cog):
+
+class Developer(BaseCog):
     "Developer cog with developer only commands"
     def __init__(self, bot: Bot):
         self.bot = bot
@@ -31,7 +33,7 @@ class Developer(Cog):
     async def load(self, inter: Interaction, cog: str):
         "Loads `cog`'s extension into the bot."
         try:
-            await self.bot.load_extension(f"src.modules.{cog}")
+            await self.bot.load_extension(f"SideBot.cogs.{cog}")
             return await inter.response.send_message(f"Loaded {cog}!",
                                                            ephemeral=True)
         except (ExtensionAlreadyLoaded, ExtensionNotFound) as err:
@@ -51,7 +53,7 @@ class Developer(Cog):
         if cog in ["developer", "admin"]:
             return await inter.response.send_message(f"Cowardly refusing to unload {cog}!", ephemeral=True)
         try:
-            await self.bot.unload_extension(f"src.modules.{cog}")
+            await self.bot.unload_extension(f"SideBot.cogs.{cog}")
             return await inter.response.send_message(f"Unloaded {cog}!", ephemeral=True)
         except ExtensionNotLoaded:
             return await inter.response.send_message(f"Failed to unload non-loaded {cog}!", ephemeral=True)
@@ -62,7 +64,7 @@ class Developer(Cog):
     async def reload(self, inter: Interaction, cog: str):
         "Reload `cog`'s extension file."
         try:
-            await self.bot.reload_extension(f"src.modules.{cog}")
+            await self.bot.reload_extension(f"SideBot.cogs.{cog}")
             return await inter.response.send_message(f"Reloaded {cog}!",
                                                      ephemeral=True)
         except (ExtensionNotLoaded, ExtensionNotFound) as err:
@@ -93,7 +95,7 @@ class Developer(Cog):
             else:
                 synced = await ctx.bot.tree.sync()
 
-            return await ctx.send(
+            await ctx.send(
                 f"Synced {len(synced)} commands {'globally' if spec is None else 'to the current guild.'}",
                 delete_after=5
             )
@@ -122,6 +124,4 @@ class Developer(Cog):
             return await inter.response.send_message(f"{err}", ephemeral=True)
 
 
-async def setup(bot: Bot):
-    "Set up the cog for bot"
-    await bot.add_cog(Developer(bot))
+setup = Developer.setup
