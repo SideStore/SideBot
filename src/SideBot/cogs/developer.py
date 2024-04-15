@@ -35,7 +35,7 @@ class Developer(BaseCog):
         try:
             await ctx.message.delete()
         except (Forbidden, NotFound, HTTPException):
-            self.logger.exception()
+            self.logger.exception(msg=None)
             return
 
     # pylint: disable=W0221

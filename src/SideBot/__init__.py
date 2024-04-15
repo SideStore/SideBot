@@ -3,6 +3,7 @@
 # pylint: disable=C0103,C0114
 import logging
 import pathlib
+import typing
 
 import discord
 import psycopg2
@@ -54,12 +55,14 @@ class SideBot(Bot):
 
     def run(  # noqa: PLR0913
         self,
+        *args: typing.Any,
         token: str | None = None,
+        **kwargs: typing.Any,
     ) -> None:
         """Run the bot with the given token."""
         if token:
-            return super().run(token, root_logger=True)
-        return super().run(self.__tok, root_logger=True)
+            return super().run(token, root_logger=True, *args, **kwargs)
+        return super().run(self.__tok, root_logger=True, *args, **kwargs)
 
     @classmethod
     def from_env(cls, path: str = ".env") -> "SideBot":
