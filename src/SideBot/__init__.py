@@ -42,7 +42,6 @@ class SideBot(Bot):
             self.logger.info("defaulting to sidestore guild")
             guild = discord.Object(856315760224894986)
         self.logger.debug(self.tree.get_commands())
-        await self.tree.sync(guild=guild)
         self.logger.info("Set up hook done!")
 
     async def on_ready(self) -> None:
@@ -61,27 +60,16 @@ class SideBot(Bot):
     def run(  # noqa: PLR0913
         self,
         token: str | None = None,
-        *,
-        reconnect: bool = True,
-        log_handler: logging.Handler | None = None,
-        log_level: int = logging.INFO,
-        root_logger: bool = True,
     ) -> None:
         """Run the bot with the given token."""
         if token:
             return super().run(
                 token,
-                reconnect=reconnect,
-                log_handler=log_handler,
-                log_level=log_level,
-                root_logger=root_logger,
+                root_logger=True
             )
         return super().run(
             self.__tok,
-            reconnect=reconnect,
-            log_handler=log_handler,
-            log_level=log_level,
-            root_logger=root_logger,
+            root_logger=True
         )
 
     @classmethod

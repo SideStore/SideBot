@@ -12,3 +12,4 @@ __pycache__
 
 pdm.lock
 type_info.json
+.pdm-python

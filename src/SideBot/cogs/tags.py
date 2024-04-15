@@ -22,7 +22,7 @@ class Tags(BaseCog):
                 embeds=[
                     discord.Embed(title="400 Bad Request", description="This command can only be used in a guild."),
                 ],
-                ephemeral=True,
+                ephemeral=False,
             )
         if isinstance(ctx.client, SideBot):
             try:
