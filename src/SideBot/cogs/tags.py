@@ -22,7 +22,7 @@ class Tags(BaseCog):
                 embeds=[
                     discord.Embed(title="400 Bad Request", description="This command can only be used in a guild."),
                 ],
-                ephemeral=False,
+                ephemeral=True,
             )
         if isinstance(ctx.client, SideBot):
             try:
@@ -34,7 +34,7 @@ class Tags(BaseCog):
                 )
             return await ctx.response.send_message(
                 embeds=[discord.Embed(title=tag_name, description=tag.content)],
-                ephemeral=True,
+                ephemeral=False,
             )
 
         return await ctx.response.send_message(
