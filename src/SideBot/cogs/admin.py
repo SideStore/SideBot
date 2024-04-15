@@ -5,7 +5,7 @@ from datetime import timedelta
 
 import discord
 from discord import Interaction, Member, Message, TextChannel
-from discord.app_commands import checks, command, describe, errors
+from discord.app_commands import default_permissions, command, describe, errors
 from discord.ext import tasks
 from discord.ext.commands import Bot
 
@@ -80,7 +80,7 @@ class Admin(BaseCog):
     @command(name="clean", description="Clean messages from channel")
     @describe(count="Amount of messages to delete")
     @describe(member="The member to delete the messages from")
-    @checks.has_permissions(manage_messages=True)
+    @default_permissions(manage_messages=True)
     async def clean(self, inter: Interaction, count: int, member: Member | None = None) -> None:
         """Clean `count` messages from optional `member` in the channel it's used."""
         if not isinstance(inter.channel, TextChannel):
