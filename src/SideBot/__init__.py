@@ -63,14 +63,8 @@ class SideBot(Bot):
     ) -> None:
         """Run the bot with the given token."""
         if token:
-            return super().run(
-                token,
-                root_logger=True
-            )
-        return super().run(
-            self.__tok,
-            root_logger=True
-        )
+            return super().run(token, root_logger=True)
+        return super().run(self.__tok, root_logger=True)
 
     @classmethod
     def from_env(cls, path: str = ".env") -> "SideBot":
