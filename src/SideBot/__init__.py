@@ -36,11 +36,6 @@ class SideBot(Bot):
         for cog in self.conf_cogs:
             await self.load_extension(f"SideBot.cogs.{cog}")
         self.logger.debug(self.extensions)
-        try:
-            guild = discord.Object(self.config["GUILD"])
-        except KeyError:
-            self.logger.info("defaulting to sidestore guild")
-            guild = discord.Object(856315760224894986)
         self.logger.debug(self.tree.get_commands())
         self.logger.info("Set up hook done!")
 
