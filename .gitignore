@@ -9,3 +9,7 @@ build/
 tags
 __pycache__
 *.egg-info/
+
+pdm.lock
+type_info.json
+.pdm-python
