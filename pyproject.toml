@@ -2,13 +2,14 @@
 name = "SideBot"
 version = "0.0.1"
 authors = [
-  { name="nythepegasus", email="me@nythepegas.us" },
+    { name="nythepegasus", email="me@nythepegas.us" },
 ]
 description = "SideBot is a multipurpose bot for the SideStore community."
 readme = "README.md"
-requires-python = ">=3.8"
+requires-python = ">=3.11"
 dependencies = [
-  "discord.py>=2.3.2",
+    "discord.py>=2.3.2",
+    "psycopg2==2.9.9",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -18,5 +19,8 @@ classifiers = [
 [project.optional-dependencies]
 dev = [
     "build",
-    "pylint"
+    "pylint",
+    "mypy",
+    "ruff",
+    "types-psycopg2",
 ]

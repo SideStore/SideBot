@@ -35,3 +35,6 @@ jobs:
 
     - name: Run Linter
       run: pylint src
+    
+    - name: Run mypy
+      run: mypy src/SideBot
