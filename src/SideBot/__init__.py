@@ -53,7 +53,7 @@ class SideBot(Bot):
         self.logger.error(ctx)
         self.logger.error(error)
 
-    def run(  # noqa: PLR0913
+    def run(
         self,
         *args: typing.Any,
         token: str | None = None,
