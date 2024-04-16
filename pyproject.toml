@@ -6,7 +6,7 @@ authors = [
 ]
 description = "SideBot is a multipurpose bot for the SideStore community."
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = [
     "discord.py>=2.3.2",
     "psycopg2==2.9.9",
