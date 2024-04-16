@@ -5,7 +5,7 @@ from datetime import timedelta
 
 import discord
 from discord import Interaction, Member, Message, TextChannel
-from discord.app_commands import default_permissions, command, describe, errors
+from discord.app_commands import command, default_permissions, describe, errors
 from discord.ext import tasks
 from discord.ext.commands import Bot
 
@@ -81,7 +81,9 @@ class Admin(BaseCog):
     @describe(count="Amount of messages to delete")
     @describe(member="The member to delete the messages from")
     @default_permissions(manage_messages=True)
-    async def clean(self, inter: Interaction, count: int, member: Member | None = None) -> None:
+    async def clean(
+        self, inter: Interaction, count: int, member: Member | None = None
+    ) -> None:
         """Clean `count` messages from optional `member` in the channel it's used."""
         if not isinstance(inter.channel, TextChannel):
             return await inter.response.send_message(
@@ -106,7 +108,9 @@ class Admin(BaseCog):
         return None
 
     @clean.error
-    async def app_command_error(self, inter: Interaction, err: errors.AppCommandError) -> None:
+    async def app_command_error(
+        self, inter: Interaction, err: errors.AppCommandError
+    ) -> None:
         """Handle app command errors."""
         if isinstance(err, errors.MissingPermissions):
             return await inter.response.send_message(
@@ -125,13 +129,21 @@ class Admin(BaseCog):
     @BaseCog.listener()
     async def on_message(self, message: Message) -> None:
         """Handle messages to detect for spam."""
-        if self.bot.user is None or message.guild is None or message.author.id == self.bot.user.id:
+        if (
+            self.bot.user is None
+            or message.guild is None
+            or message.author.id == self.bot.user.id
+        ):
             return
         if message.author.id not in [su.i for su in self.spammers]:
             self.spammers.append(
                 SpamUser(
                     message.author.id,
-                    [SpamChannel(message.channel.id, [SpamMessage(message.id)])],
+                    [
+                        SpamChannel(
+                            message.channel.id, [SpamMessage(message.id)]
+                        )
+                    ],
                 ),
             )
             return
@@ -161,7 +173,10 @@ class Admin(BaseCog):
                 if isinstance(chan, TextChannel):
                     del_chans.append(
                         chan.delete_messages(
-                            [chan.get_partial_message(msg.i) for msg in channel.messages],
+                            [
+                                chan.get_partial_message(msg.i)
+                                for msg in channel.messages
+                            ],
                         ),
                     )
             await asyncio.gather(*del_chans)

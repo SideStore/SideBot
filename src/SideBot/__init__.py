@@ -4,9 +4,10 @@
 import logging
 import pathlib
 import typing
+import asyncio
 
 import discord
-import psycopg2
+import asyncpg
 from discord.ext import commands
 from discord.ext.commands import AutoShardedBot, Bot, when_mentioned_or
 
@@ -22,15 +23,17 @@ class SideBot(Bot):
 
         intents = discord.Intents.all()
 
-        super().__init__(command_prefix=when_mentioned_or("##"), intents=intents)
+        super().__init__(
+            command_prefix=when_mentioned_or("##"), intents=intents
+        )
 
         self.owner_id = int(self.config["OWNER"])
         self.conf_cogs = self.config["COGS"].split(",")
-        self.connection = self.setup_connection()
+        self.connection = asyncio.run(self.setup_connection())
 
-    def setup_connection(self) -> psycopg2.extensions.connection:
+    async def setup_connection(self) -> asyncpg.Connection[asyncpg.Record]:
         """Set up the database connection."""
-        return psycopg2.connect(self.config["DATABASE_URL"])
+        return await asyncpg.connect(self.config["DATABASE_URL"])
 
     async def setup_hook(self) -> None:
         """Set up cogs and app commands."""
@@ -43,12 +46,16 @@ class SideBot(Bot):
     async def on_ready(self) -> None:
         """Handle bot ready status."""
         if self.user:
-            self.logger.info("Logged in as %s (ID: %s)", self.user, self.user.id)
+            self.logger.info(
+                "Logged in as %s (ID: %s)", self.user, self.user.id
+            )
         else:
             self.logger.error("Error getting user")
 
     # pylint: disable=W0221
-    async def on_command_error(self, ctx: commands.Context[Bot | AutoShardedBot], error: Exception) -> None:
+    async def on_command_error(
+        self, ctx: commands.Context[Bot | AutoShardedBot], error: Exception
+    ) -> None:
         """Handle unhandled command errors."""
         self.logger.error(ctx)
         self.logger.error(error)
@@ -61,15 +68,18 @@ class SideBot(Bot):
     ) -> None:
         """Run the bot with the given token."""
         if token:
-            return super().run(token, root_logger=True, *args, **kwargs)
-        return super().run(self.__tok, root_logger=True, *args, **kwargs)
+            return super().run(token, *args, root_logger=True, **kwargs)
+        return super().run(self.__tok, *args, root_logger=True, **kwargs)
 
     @classmethod
     def from_env(cls, path: str = ".env") -> "SideBot":
         """Load the bot from a .env file with the proper configuration."""
         with pathlib.Path(path).open(encoding="utf-8") as env:
             conf = {
-                k: v for line in env if (k := line.strip().split("=", 1)[0]) and (v := line.strip().split("=", 1)[1])
+                k: v
+                for line in env
+                if (k := line.strip().split("=", 1)[0])
+                and (v := line.strip().split("=", 1)[1])
             }
 
         return cls(conf)

@@ -29,7 +29,7 @@ exclude = [
 ]
 
 # Same as Black.
-line-length = 120
+line-length = 80
 indent-width = 4
 
 target-version = "py311"
@@ -37,7 +37,7 @@ target-version = "py311"
 [lint]
 # Enable Pyflakes (`F`) and a subset of the pycodestyle (`E`)  codes by default.
 select = ["ALL"]
-ignore = ["N999", "ANN101", "ANN102"]
+ignore = ["N999", "ANN101", "ANN102", "D211", "D213"]
 
 # Allow fix for all enabled rules (when `--fix`) is provided.
 fixable = ["ALL"]

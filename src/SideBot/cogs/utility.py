@@ -11,7 +11,12 @@ from discord.ext.commands import Bot, Cog
 class Utility(Cog):
     """The utility cog with various utility commands, listeners, etc."""
 
-    def __init__(self, bot: Bot, ultra_rare_threshold: float = 0.05, rare_threshold: float = 0.4) -> None:
+    def __init__(
+        self,
+        bot: Bot,
+        ultra_rare_threshold: float = 0.05,
+        rare_threshold: float = 0.4,
+    ) -> None:
         """Initialize the Utility cog."""
         self.bot = bot
         self.rare_threshold = rare_threshold

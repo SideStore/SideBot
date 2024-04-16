@@ -9,7 +9,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "discord.py>=2.3.2",
-    "psycopg2==2.9.9",
+    "asyncpg>=0.29.0",
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -18,11 +18,11 @@ classifiers = [
 
 [project.optional-dependencies]
 dev = [
-    "build",
-    "pylint",
-    "mypy",
-    "ruff",
-    "types-psycopg2",
+    "build>=1.2.1",
+    "pylint>=3.1.0",
+    "asyncpg-stubs>=0.29.1",
+    "mypy>=1.9.0",
+    "ruff>=0.3.7",
     "pyannotate>=1.2.0",
 ]
 

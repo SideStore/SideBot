@@ -1,8 +1,9 @@
 """prelimitary tags cog, will be updated later."""
 
 import discord
-from discord.app_commands import command as acommand, guild_only
 from discord import app_commands
+from discord.app_commands import command as acommand
+from discord.app_commands import guild_only
 
 from SideBot import SideBot
 from SideBot.db.tags import Tag as DBTag
@@ -20,7 +21,10 @@ class Tags(BaseCog):
         if not ctx.guild:
             return await ctx.response.send_message(
                 embeds=[
-                    discord.Embed(title="400 Bad Request", description="This command can only be used in a guild."),
+                    discord.Embed(
+                        title="400 Bad Request",
+                        description="This command can only be used in a guild.",
+                    ),
                 ],
                 ephemeral=True,
             )
@@ -29,7 +33,11 @@ class Tags(BaseCog):
                 tag = DBTag.get(ctx.guild.id, tag_name, ctx.client.connection)
             except ValueError:
                 return await ctx.response.send_message(
-                    embeds=[discord.Embed(title="404 Not Found", description="Tag not found")],
+                    embeds=[
+                        discord.Embed(
+                            title="404 Not Found", description="Tag not found"
+                        )
+                    ],
                     ephemeral=True,
                 )
             return await ctx.response.send_message(
@@ -50,20 +58,29 @@ class Tags(BaseCog):
     @acommand()
     @guild_only()
     @app_commands.default_permissions(create_expressions=True)
-    async def create(self, ctx: discord.Interaction, tag_name: str, content: str) -> None:
+    async def create(
+        self, ctx: discord.Interaction, tag_name: str, content: str
+    ) -> None:
         """Create a tag."""
         if not ctx.guild:
             return await ctx.response.send_message(
                 embeds=[
-                    discord.Embed(title="400 Bad Request", description="This command can only be used in a guild."),
+                    discord.Embed(
+                        title="400 Bad Request",
+                        description="This command can only be used in a guild.",
+                    ),
                 ],
                 ephemeral=True,
             )
         if isinstance(ctx.client, SideBot):
             tag = DBTag(tag_name, content, ctx.client.connection)
-            tag.create(ctx.guild.id)
+            await tag.create(ctx.guild.id)
             return await ctx.response.send_message(
-                embeds=[discord.Embed(title="201 Created", description="Tag created")],
+                embeds=[
+                    discord.Embed(
+                        title="201 Created", description="Tag created"
+                    )
+                ],
                 ephemeral=True,
             )
 
@@ -85,15 +102,20 @@ class Tags(BaseCog):
         if not ctx.guild:
             return await ctx.response.send_message(
                 embeds=[
-                    discord.Embed(title="400 Bad Request", description="This command can only be used in a guild."),
+                    discord.Embed(
+                        title="400 Bad Request",
+                        description="This command can only be used in a guild.",
+                    ),
                 ],
                 ephemeral=True,
             )
         if isinstance(ctx.client, SideBot):
             tag = DBTag(tag_name, "", ctx.client.connection)
-            tag.delete(ctx.guild.id)
+            await tag.delete(ctx.guild.id)
             return await ctx.response.send_message(
-                embeds=[discord.Embed(title="200 OK", description="Tag deleted")],
+                embeds=[
+                    discord.Embed(title="200 OK", description="Tag deleted")
+                ],
                 ephemeral=True,
             )
 
@@ -110,20 +132,27 @@ class Tags(BaseCog):
     @acommand()
     @guild_only()
     @app_commands.default_permissions(manage_expressions=True)
-    async def update(self, ctx: discord.Interaction, tag_name: str, content: str) -> None:
+    async def update(
+        self, ctx: discord.Interaction, tag_name: str, content: str
+    ) -> None:
         """Update a tag."""
         if not ctx.guild:
             return await ctx.response.send_message(
                 embeds=[
-                    discord.Embed(title="400 Bad Request", description="This command can only be used in a guild."),
+                    discord.Embed(
+                        title="400 Bad Request",
+                        description="This command can only be used in a guild.",
+                    ),
                 ],
                 ephemeral=True,
             )
         if isinstance(ctx.client, SideBot):
             tag = DBTag(tag_name, content, ctx.client.connection)
-            tag.update(ctx.guild.id)
+            await tag.update(ctx.guild.id)
             return await ctx.response.send_message(
-                embeds=[discord.Embed(title="200 OK", description="Tag updated")],
+                embeds=[
+                    discord.Embed(title="200 OK", description="Tag updated")
+                ],
                 ephemeral=True,
             )
 
@@ -144,7 +173,10 @@ class Tags(BaseCog):
         if not ctx.guild:
             return await ctx.response.send_message(
                 embeds=[
-                    discord.Embed(title="400 Bad Request", description="This command can only be used in a guild."),
+                    discord.Embed(
+                        title="400 Bad Request",
+                        description="This command can only be used in a guild.",
+                    ),
                 ],
                 ephemeral=True,
             )
@@ -152,7 +184,10 @@ class Tags(BaseCog):
             tags = DBTag.get_all(ctx.guild.id, ctx.client.connection)
             return await ctx.response.send_message(
                 embeds=[
-                    discord.Embed(title="Tags", description="\n".join([tag.tagname for tag in tags])),
+                    discord.Embed(
+                        title="Tags",
+                        description="\n".join([tag.tagname async for tag in tags]),
+                    ),
                 ],
                 ephemeral=True,
             )
