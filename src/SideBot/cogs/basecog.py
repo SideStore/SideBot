@@ -6,6 +6,7 @@ from discord.ext.commands import Bot, Cog
 
 
 class BaseCog(Cog):
+
     """A base cog to simplify various cog actions."""
 
     def __init__(self, bot: Bot) -> None:

@@ -1,8 +1,9 @@
 """Tags database module."""
 
 import asyncio
-from typing import Any, AsyncGenerator
 import datetime
+from collections.abc import AsyncGenerator
+from typing import Any
 
 import asyncpg
 
@@ -52,7 +53,7 @@ class _Tags:
                 encoder=DiscordUser.to_tuple,
                 decoder=DiscordUser.from_tuple,
                 format="tuple",
-            )
+            ),
         )
         tasks.add(task)
         task.add_done_callback(lambda _: tasks.remove(task))
@@ -62,7 +63,7 @@ class _Tags:
                 encoder=ButtonLink.to_tuple,
                 decoder=ButtonLink.from_tuple,
                 format="tuple",
-            )
+            ),
         )
         tasks.add(task)
         task.add_done_callback(lambda _: tasks.remove(task))
@@ -75,7 +76,10 @@ class _Tags:
         )
         return await cursor.fetchrow()
 
-    async def get_all(self, guild_id: int) -> AsyncGenerator[asyncpg.Record, asyncpg.Record]:
+    async def get_all(
+        self,
+        guild_id: int,
+    ) -> AsyncGenerator[asyncpg.Record, asyncpg.Record]:
         """Get all tags."""
         cursor = await self.conn.cursor(
             "SELECT content FROM tags WHERE guild_id = %s",
@@ -112,7 +116,9 @@ class _Tags:
             (guild_id, tag_name),
         )
 
+
 class DiscordUser:
+
     """DiscordUser class."""
 
     def __init__(self, id: int, name: str) -> None:
@@ -124,13 +130,15 @@ class DiscordUser:
     def to_tuple(cls, user: "DiscordUser") -> tuple[int, str]:
         """Convert to tuple."""
         return user.id, user.name
-    
+
     @classmethod
     def from_tuple(cls, user: tuple[int, str]) -> "DiscordUser":
         """Convert from tuple."""
         return cls(*user)
-    
+
+
 class ButtonLink:
+
     """ButtonLink class."""
 
     def __init__(self, label: str, url: str) -> None:
@@ -142,13 +150,15 @@ class ButtonLink:
     def to_tuple(cls, button: "ButtonLink") -> tuple[str, str]:
         """Convert to tuple."""
         return button.label, button.url
-    
+
     @classmethod
     def from_tuple(cls, button: tuple[str, str]) -> "ButtonLink":
         """Convert from tuple."""
         return cls(*button)
 
+
 class Tag:
+
     """Tag class."""
 
     def __init__(
@@ -172,7 +182,10 @@ class Tag:
 
     @classmethod
     async def get(
-        cls, guild_id: int, tag_name: str, conn: asyncpg.Connection
+        cls,
+        guild_id: int,
+        tag_name: str,
+        conn: asyncpg.Connection,
     ) -> "Tag":
         """Get a tag."""
         tag = await _Tags(conn).get(guild_id, tag_name)
@@ -180,16 +193,35 @@ class Tag:
             msg = f"Tag {tag_name} not found"
             raise ValueError(msg)
         await _Tags(conn).update_used_count(guild_id, tag_name)
-        return cls(tag_name, tag["name"], tag["content"], tag["author"], tag["created_at"], tag["updated_at"], tag["button_links"], tag["used_count"], conn)
+        return cls(
+            tag_name,
+            tag["name"],
+            tag["content"],
+            tag["author"],
+            tag["created_at"],
+            tag["updated_at"],
+            tag["button_links"],
+            tag["used_count"],
+            conn,
+        )
 
     @classmethod
     async def get_all(
-        cls, guild_id: int, conn: asyncpg.Connection
+        cls,
+        guild_id: int,
+        conn: asyncpg.Connection,
     ) -> AsyncGenerator["Tag", Any]:
         """Get all tags."""
         async for tag in _Tags(conn).get_all(guild_id):
             yield cls(
-                tag["name"], tag["content"], tag["author"], tag["created_at"], tag["updated_at"], tag["button_links"], tag["used_count"], conn
+                tag["name"],
+                tag["content"],
+                tag["author"],
+                tag["created_at"],
+                tag["updated_at"],
+                tag["button_links"],
+                tag["used_count"],
+                conn,
             )
 
     async def create(self, guild_id: int) -> None:

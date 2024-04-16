@@ -13,6 +13,7 @@ from .basecog import BaseCog
 
 
 class SpamMessage:
+
     """A message representation."""
 
     __slots__ = ("i",)
@@ -27,6 +28,7 @@ class SpamMessage:
 
 
 class SpamChannel:
+
     """A channel representation that holds messages."""
 
     __slots__ = ("i", "messages")
@@ -47,6 +49,7 @@ class SpamChannel:
 
 
 class SpamUser:
+
     """A user representation that holds channels."""
 
     __slots__ = ("i", "channels")
@@ -67,6 +70,7 @@ class SpamUser:
 
 
 class Admin(BaseCog):
+
     """Admin cog with commands for moderation."""
 
     def __init__(self, bot: Bot, channels_max: int = 4) -> None:
@@ -82,7 +86,10 @@ class Admin(BaseCog):
     @describe(member="The member to delete the messages from")
     @default_permissions(manage_messages=True)
     async def clean(
-        self, inter: Interaction, count: int, member: Member | None = None
+        self,
+        inter: Interaction,
+        count: int,
+        member: Member | None = None,
     ) -> None:
         """Clean `count` messages from optional `member` in the channel it's used."""
         if not isinstance(inter.channel, TextChannel):
@@ -109,7 +116,9 @@ class Admin(BaseCog):
 
     @clean.error
     async def app_command_error(
-        self, inter: Interaction, err: errors.AppCommandError
+        self,
+        inter: Interaction,
+        err: errors.AppCommandError,
     ) -> None:
         """Handle app command errors."""
         if isinstance(err, errors.MissingPermissions):
@@ -141,8 +150,9 @@ class Admin(BaseCog):
                     message.author.id,
                     [
                         SpamChannel(
-                            message.channel.id, [SpamMessage(message.id)]
-                        )
+                            message.channel.id,
+                            [SpamMessage(message.id)],
+                        ),
                     ],
                 ),
             )

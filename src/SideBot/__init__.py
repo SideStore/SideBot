@@ -1,18 +1,19 @@
 """Main module for the SideBot."""
 
 # pylint: disable=C0103,C0114
+import asyncio
 import logging
 import pathlib
 import typing
-import asyncio
 
-import discord
 import asyncpg
+import discord
 from discord.ext import commands
 from discord.ext.commands import AutoShardedBot, Bot, when_mentioned_or
 
 
 class SideBot(Bot):
+
     """Custom SideBot class to simplify start up."""
 
     def __init__(self, config: dict[str, str]) -> None:
@@ -24,7 +25,8 @@ class SideBot(Bot):
         intents = discord.Intents.all()
 
         super().__init__(
-            command_prefix=when_mentioned_or("##"), intents=intents
+            command_prefix=when_mentioned_or("##"),
+            intents=intents,
         )
 
         self.owner_id = int(self.config["OWNER"])
@@ -47,14 +49,18 @@ class SideBot(Bot):
         """Handle bot ready status."""
         if self.user:
             self.logger.info(
-                "Logged in as %s (ID: %s)", self.user, self.user.id
+                "Logged in as %s (ID: %s)",
+                self.user,
+                self.user.id,
             )
         else:
             self.logger.error("Error getting user")
 
     # pylint: disable=W0221
     async def on_command_error(
-        self, ctx: commands.Context[Bot | AutoShardedBot], error: Exception
+        self,
+        ctx: commands.Context[Bot | AutoShardedBot],
+        error: Exception,
     ) -> None:
         """Handle unhandled command errors."""
         self.logger.error(ctx)

@@ -9,6 +9,7 @@ from discord.ext.commands import Bot, Cog
 
 
 class Utility(Cog):
+
     """The utility cog with various utility commands, listeners, etc."""
 
     def __init__(

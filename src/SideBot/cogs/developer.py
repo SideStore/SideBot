@@ -23,6 +23,7 @@ from .basecog import BaseCog
 
 
 class Developer(BaseCog):
+
     """Developer cog with developer only commands."""
 
     def __init__(self, bot: Bot) -> None:
@@ -31,7 +32,8 @@ class Developer(BaseCog):
         self.description = "This is for ny only"
 
     async def cog_before_invoke(
-        self, ctx: commands.Context[Bot | AutoShardedBot]
+        self,
+        ctx: commands.Context[Bot | AutoShardedBot],
     ) -> None:
         """Delete text command messages."""
         try:
@@ -51,7 +53,8 @@ class Developer(BaseCog):
         try:
             await self.bot.load_extension(f"SideBot.cogs.{cog}")
             return await inter.response.send_message(
-                f"Loaded {cog}!", ephemeral=True
+                f"Loaded {cog}!",
+                ephemeral=True,
             )
         except (ExtensionAlreadyLoaded, ExtensionNotFound) as err:
             if isinstance(err, ExtensionAlreadyLoaded):
@@ -59,7 +62,8 @@ class Developer(BaseCog):
             else:
                 msg = f"{cog} could not be found!"
             return await inter.response.send_message(
-                f"{msg}\n{err}", ephemeral=True
+                f"{msg}\n{err}",
+                ephemeral=True,
             )
         except Exception as err:  # pylint: disable=W0718 # noqa: BLE001
             return await inter.response.send_message(
@@ -78,7 +82,8 @@ class Developer(BaseCog):
         try:
             await self.bot.unload_extension(f"SideBot.cogs.{cog}")
             return await inter.response.send_message(
-                f"Unloaded {cog}!", ephemeral=True
+                f"Unloaded {cog}!",
+                ephemeral=True,
             )
         except ExtensionNotLoaded:
             return await inter.response.send_message(
@@ -94,7 +99,8 @@ class Developer(BaseCog):
         try:
             await self.bot.reload_extension(f"SideBot.cogs.{cog}")
             return await inter.response.send_message(
-                f"Reloaded {cog}!", ephemeral=True
+                f"Reloaded {cog}!",
+                ephemeral=True,
             )
         except (ExtensionNotLoaded, ExtensionNotFound) as err:
             if isinstance(err, ExtensionNotLoaded):
@@ -153,14 +159,17 @@ class Developer(BaseCog):
                 ret += 1
 
         await ctx.send(
-            f"Synced the tree to {ret}/{len(guilds)}.", delete_after=5
+            f"Synced the tree to {ret}/{len(guilds)}.",
+            delete_after=5,
         )
 
     @load.error
     @unload.error
     @reload.error
     async def app_command_error(
-        self, inter: Interaction, err: errors.AppCommandError
+        self,
+        inter: Interaction,
+        err: errors.AppCommandError,
     ) -> None:
         """Handle app command errors."""
         if isinstance(err, errors.CheckFailure):

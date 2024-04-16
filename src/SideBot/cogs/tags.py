@@ -12,6 +12,7 @@ from .basecog import BaseCog
 
 
 class Tags(BaseCog):
+
     """Tags cog with commands for tags."""
 
     @acommand()
@@ -35,8 +36,9 @@ class Tags(BaseCog):
                 return await ctx.response.send_message(
                     embeds=[
                         discord.Embed(
-                            title="404 Not Found", description="Tag not found"
-                        )
+                            title="404 Not Found",
+                            description="Tag not found",
+                        ),
                     ],
                     ephemeral=True,
                 )
@@ -59,7 +61,10 @@ class Tags(BaseCog):
     @guild_only()
     @app_commands.default_permissions(create_expressions=True)
     async def create(
-        self, ctx: discord.Interaction, tag_name: str, content: str
+        self,
+        ctx: discord.Interaction,
+        tag_name: str,
+        content: str,
     ) -> None:
         """Create a tag."""
         if not ctx.guild:
@@ -78,8 +83,9 @@ class Tags(BaseCog):
             return await ctx.response.send_message(
                 embeds=[
                     discord.Embed(
-                        title="201 Created", description="Tag created"
-                    )
+                        title="201 Created",
+                        description="Tag created",
+                    ),
                 ],
                 ephemeral=True,
             )
@@ -114,7 +120,7 @@ class Tags(BaseCog):
             await tag.delete(ctx.guild.id)
             return await ctx.response.send_message(
                 embeds=[
-                    discord.Embed(title="200 OK", description="Tag deleted")
+                    discord.Embed(title="200 OK", description="Tag deleted"),
                 ],
                 ephemeral=True,
             )
@@ -133,7 +139,10 @@ class Tags(BaseCog):
     @guild_only()
     @app_commands.default_permissions(manage_expressions=True)
     async def update(
-        self, ctx: discord.Interaction, tag_name: str, content: str
+        self,
+        ctx: discord.Interaction,
+        tag_name: str,
+        content: str,
     ) -> None:
         """Update a tag."""
         if not ctx.guild:
@@ -151,7 +160,7 @@ class Tags(BaseCog):
             await tag.update(ctx.guild.id)
             return await ctx.response.send_message(
                 embeds=[
-                    discord.Embed(title="200 OK", description="Tag updated")
+                    discord.Embed(title="200 OK", description="Tag updated"),
                 ],
                 ephemeral=True,
             )
@@ -186,7 +195,9 @@ class Tags(BaseCog):
                 embeds=[
                     discord.Embed(
                         title="Tags",
-                        description="\n".join([tag.tagname async for tag in tags]),
+                        description="\n".join(
+                            [tag.tagname async for tag in tags],
+                        ),
                     ),
                 ],
                 ephemeral=True,
