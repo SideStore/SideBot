@@ -31,7 +31,6 @@ class SideBot(Bot):
 
         self.owner_id = int(self.config["OWNER"])
         self.conf_cogs = self.config["COGS"].split(",")
-        self.connection = asyncio.run(self.setup_connection())
 
     async def setup_connection(self) -> asyncpg.Connection:
         """Set up the database connection."""
@@ -53,6 +52,8 @@ class SideBot(Bot):
                 self.user,
                 self.user.id,
             )
+            self.connection: asyncpg.Connection = await self.setup_connection()
+
         else:
             self.logger.error("Error getting user")
 
