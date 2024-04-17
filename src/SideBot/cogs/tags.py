@@ -145,6 +145,7 @@ class CreateTagsModal(discord.ui.Modal, title="Create a Tag"):
             datetime.datetime.now(tz=datetime.UTC),
             [],
             0,
+            None,
             interaction.client.connection,
         )
         await tagobj.create()

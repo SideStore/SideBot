@@ -2,7 +2,7 @@
 
 import datetime
 from collections.abc import AsyncGenerator
-from typing import Any
+from typing import Any, Optional
 
 import asyncpg
 
@@ -92,7 +92,7 @@ class _Tags:
             used,
         )
 
-    async def save(self, guild_id: int,
+    async def save(self,tag_id:int,  guild_id: int,
         tag_name: str,
         content: str,
         author: DiscordUser,
@@ -101,15 +101,15 @@ class _Tags:
         """Save a tag."""
         await self.conn.execute(
             """UPDATE tags
-            (guild_id, name, content, author, button_links, used)
-            VALUES
-            ($1, $2, $3, $4, $5, $6)""",
+            guild_id = $1, name = $2, content = $3, author = $4, button_links = $5, used = $6
+            WHERE id = $7 """,
             guild_id,
             tag_name,
             content,
             author,
             button_links,
             used,
+            tag_id
         )
 
     async def delete(self, guild_id: int, tag_name: str) -> None:
@@ -152,6 +152,7 @@ class Tag:
         updated_at: datetime.datetime,
         button_links: list[ButtonLink],
         used_count: int,
+        ident: Optional[int],
         conn: asyncpg.Connection,
     ) -> None:
         """Tag class."""
@@ -163,6 +164,7 @@ class Tag:
         self.updated_at = updated_at
         self.button_links = button_links
         self.used_count = used_count
+        self.id = ident
         self.tags = _Tags(conn)
 
     async def finish(
@@ -194,6 +196,7 @@ class Tag:
             tag["updated_at"],
             tag["button_links"],
             tag["used"],
+            tag["id"],
             conn,
         )
 
@@ -214,6 +217,7 @@ class Tag:
                 tag["updated_at"],
                 tag["button_links"],
                 tag["used"],
+                tag["id"],
                 conn,
             )
 
@@ -237,4 +241,5 @@ class Tag:
         await self.tags.update(self.guildid, self.tagname, self.content)
 
     async def save(self) -> None:
-        await self.tags.save(self.guildid, self.tagname, self.content, self.author, self.button_links, self.used_count)
+        assert self.id is not None
+        await self.tags.save(self.id, self.guildid, self.tagname, self.content, self.author, self.button_links, self.used_count)
