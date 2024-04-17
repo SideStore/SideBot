@@ -107,7 +107,7 @@ class _Tags:
             content,
             guild_id,
             tag_name,
-            datetime.datetime.now(), # noqa: DTZ005
+            datetime.datetime.now(),  # noqa: DTZ005
         )
 
     async def update_used_count(self, guild_id: int, tag_name: str) -> None:

@@ -1,6 +1,7 @@
 """prelimitary tags cog, will be updated later."""
 
 import datetime
+import re
 import traceback
 import typing
 
@@ -180,6 +181,27 @@ class CreateTagsModal(discord.ui.Modal, title="Create a Tag"):
 class Tags(BaseCog):
     """Tags cog with commands for tags."""
 
+    def prepare_tag_view(self, button_links: list[ButtonLink]) -> discord.ui.View:
+        """Prepare the tag view."""
+        view = discord.ui.View()
+        for button_link in button_links:
+            custom_emojis = re.search(r"<:\d+>|<:.+?:\d+>|<a:.+:\d+>|[\U00010000-\U0010ffff]", button_link.label)
+            if custom_emojis is not None:
+                emoji = custom_emojis.group(0).strip()
+                label = button_link.label.replace(emoji, "")
+                label = label.strip()
+            else:
+                emoji = None
+            view.add_item(
+                discord.ui.Button(
+                    style=discord.ButtonStyle.link,
+                    label=button_link.label,
+                    url=button_link.url,
+                    emoji=emoji,
+                ),
+            )
+        return view
+
     @acommand()
     @guild_only()
     async def tag(self, ctx: discord.Interaction, tag_name: str) -> None:
@@ -211,9 +233,14 @@ class Tags(BaseCog):
                     ],
                     ephemeral=True,
                 )
+            embed = discord.Embed(title=tag_name, description=tag.content, color=discord.Color(0x734EBE)).set_footer(
+                text=f"Used count: {tag.used_count} | Created by {tag.author.name}"
+                f" at {tag.created_at.timestamp()} | Last updated at {tag.updated_at.timestamp()}",
+            )
             return await ctx.response.send_message(
-                embeds=[discord.Embed(title=tag_name, description=tag.content)],
+                embeds=[embed],
                 ephemeral=False,
+                view=(self.prepare_tag_view(tag.button_links) if tag.button_links else discord.utils.MISSING),
             )
 
         return await ctx.response.send_message(
