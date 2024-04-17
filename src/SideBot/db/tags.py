@@ -62,9 +62,9 @@ class _Tags(Awaitable[None]):
             format="tuple",
         )
 
-    def __init__(self, conn: asyncpg.Connection[asyncpg.Record]) -> None:
+    def __init__(self, conn: asyncpg.Connection) -> None:
         """Tag database operations."""
-        self.conn: asyncpg.Connection[asyncpg.Record] = conn
+        self.conn: asyncpg.Connection = conn
 
     async def get(self, guild_id: int, tag_name: str) -> asyncpg.Record | None:
         """Get a tag."""
@@ -173,7 +173,7 @@ class Tag(Awaitable["Tag"]):
         updated_at: datetime.datetime,
         button_links: list[ButtonLink],
         used_count: int,
-        conn: asyncpg.Connection[asyncpg.Record],
+        conn: asyncpg.Connection,
     ) -> None:
         """Tag class."""
         self.tagname = tagname
@@ -201,7 +201,7 @@ class Tag(Awaitable["Tag"]):
         cls,
         guild_id: int,
         tag_name: str,
-        conn: asyncpg.Connection[asyncpg.Record],
+        conn: asyncpg.Connection,
     ) -> "Tag":
         """Get a tag."""
         tag = await _Tags(conn).get(guild_id, tag_name)
@@ -224,7 +224,7 @@ class Tag(Awaitable["Tag"]):
     async def get_all(
         cls,
         guild_id: int,
-        conn: asyncpg.Connection[asyncpg.Record],
+        conn: asyncpg.Connection,
     ) -> AsyncGenerator["Tag", Any]:
         """Get all tags."""
         async for tag in _Tags(conn).get_all(guild_id):

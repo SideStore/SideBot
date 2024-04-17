@@ -33,7 +33,7 @@ class SideBot(Bot):
         self.conf_cogs = self.config["COGS"].split(",")
         self.connection = asyncio.run(self.setup_connection())
 
-    async def setup_connection(self) -> asyncpg.Connection[asyncpg.Record]:
+    async def setup_connection(self) -> asyncpg.Connection:
         """Set up the database connection."""
         return await asyncpg.connect(self.config["DATABASE_URL"])
 
