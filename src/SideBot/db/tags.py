@@ -92,6 +92,26 @@ class _Tags:
             used,
         )
 
+    async def save(self, guild_id: int,
+        tag_name: str,
+        content: str,
+        author: DiscordUser,
+        button_links: list[ButtonLink],
+        used: int = 0) -> None:
+        """Save a tag."""
+        await self.conn.execute(
+            """UPDATE tags SET
+            (guild_id, name, content, author, button_links, used)
+            VALUES
+            ($1, $2, $3, $4, $5, $6)""",
+            guild_id,
+            tag_name,
+            content,
+            author,
+            button_links,
+            used,
+        )
+
     async def delete(self, guild_id: int, tag_name: str) -> None:
         """Delete a tag."""
         await self.conn.execute(
@@ -124,6 +144,7 @@ class Tag:
 
     def __init__(
         self,
+        guild_id: int,
         tagname: str,
         content: str,
         author: DiscordUser,
@@ -134,6 +155,7 @@ class Tag:
         conn: asyncpg.Connection,
     ) -> None:
         """Tag class."""
+        self.guildid = guild_id
         self.tagname = tagname
         self.content = content
         self.author = author
@@ -164,6 +186,7 @@ class Tag:
             raise ValueError(msg)
         await _Tags(conn).update_used_count(guild_id, tag_name)
         return cls(
+            guild_id,
             tag_name,
             tag["content"],
             tag["author"],
@@ -183,6 +206,7 @@ class Tag:
         """Get all tags."""
         async for tag in _Tags(conn).get_all(guild_id):
             yield cls(
+                guild_id,
                 tag["name"],
                 tag["content"],
                 tag["author"],
@@ -193,10 +217,10 @@ class Tag:
                 conn,
             )
 
-    async def create(self, guild_id: int) -> None:
+    async def create(self) -> None:
         """Create a tag."""
         await self.tags.create(
-            guild_id,
+            self.guildid,
             self.tagname,
             self.content,
             self.author,
@@ -204,10 +228,13 @@ class Tag:
             self.used_count,
         )
 
-    async def delete(self, guild_id: int) -> None:
+    async def delete(self) -> None:
         """Delete a tag."""
-        await self.tags.delete(guild_id, self.tagname)
+        await self.tags.delete(self.guildid, self.tagname)
 
-    async def update(self, guild_id: int) -> None:
+    async def update(self) -> None:
         """Update a tag."""
-        await self.tags.update(guild_id, self.tagname, self.content)
+        await self.tags.update(self.guildid, self.tagname, self.content)
+
+    async def save(self) -> None:
+        await self.tags.save(self.guildid, self.tagname, self.content, self.author, self.button_links, self.used_count)

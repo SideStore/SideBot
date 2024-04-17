@@ -62,7 +62,7 @@ class UpdateTagsModal(discord.ui.Modal, title="Update a Tag"):
         tagobj: DBTag = await DBTag.get(interaction.guild.id, self.tagname.value, interaction.client.connection)
         tagobj.updated_at = datetime.datetime.now(tz=datetime.UTC)
         tagobj.content = self.content.value
-        await tagobj.update(interaction.guild.id)
+        await tagobj.update()
         await interaction.response.send_message(
             embeds=[
                 discord.Embed(
@@ -137,6 +137,7 @@ class CreateTagsModal(discord.ui.Modal, title="Create a Tag"):
                 ephemeral=True,
             )
         tagobj: DBTag = DBTag(
+            interaction.guild.id,
             self.tagname.value,
             self.content.value,
             DiscordUser.from_dpy_user(interaction.user),
@@ -146,7 +147,7 @@ class CreateTagsModal(discord.ui.Modal, title="Create a Tag"):
             0,
             interaction.client.connection,
         )
-        await tagobj.create(interaction.guild.id)
+        await tagobj.create()
         await interaction.response.send_message(
             embeds=[
                 discord.Embed(
@@ -235,7 +236,7 @@ class Tags(BaseCog):
                 )
             embed = discord.Embed(title=tag_name, description=tag.content, color=discord.Color(0x734EBE)).set_footer(
                 text=f"Used count: {tag.used_count} | Created by {tag.author.name}"
-                f" at {tag.created_at.timestamp()} | Last updated at {tag.updated_at.timestamp()}",
+                f" at {int(tag.created_at.timestamp())} | Last updated at {int(tag.updated_at.timestamp())}",
             )
             return await ctx.response.send_message(
                 embeds=[embed],
@@ -303,7 +304,7 @@ class Tags(BaseCog):
             )
         if isinstance(ctx.client, SideBot):
             tag = await DBTag.get(ctx.guild.id, tag_name, ctx.client.connection)
-            await tag.delete(ctx.guild.id)
+            await tag.delete()
             return await ctx.response.send_message(
                 embeds=[
                     discord.Embed(title="200 OK", description="Tag deleted"),
@@ -408,6 +409,7 @@ class Tags(BaseCog):
             tag = await DBTag.get(ctx.guild.id, tag_name, ctx.client.connection)
             button_link = ButtonLink(title, url)
             tag.button_links.append(button_link)
+            await tag.save()
             return await ctx.response.send_message(
                 embeds=[
                     discord.Embed(title="200 OK", description="Button link added"),
