@@ -257,3 +257,4 @@ class Tag:
             self.button_links,
             self.used_count,
         )
+        return None
