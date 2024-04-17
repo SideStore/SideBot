@@ -145,8 +145,6 @@ class CreateTagsModal(discord.ui.Modal, title="Create a Tag"):
             0,
             interaction.client.connection,
         )
-        if interaction.client.config.get("WRITE_SCHEMA", "false") == "true":
-            await tagobj.finish()
         await tagobj.create(interaction.guild.id)
         await interaction.response.send_message(
             embeds=[
