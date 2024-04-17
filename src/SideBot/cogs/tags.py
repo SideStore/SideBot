@@ -6,15 +6,15 @@ import typing
 
 import discord
 from discord import app_commands
-from discord.ext import commands
 from discord.app_commands import command as acommand
 from discord.app_commands import guild_only
 
 from SideBot import SideBot
 from SideBot.db.tags import Tag as DBTag
-from SideBot.utils import DiscordUser, ButtonLink
+from SideBot.utils import ButtonLink, DiscordUser
 
 from .basecog import BaseCog
+
 
 class UpdateTagsModal(discord.ui.Modal, title="Update a Tag"):
     """Modal for updating tags."""
@@ -91,6 +91,7 @@ class UpdateTagsModal(discord.ui.Modal, title="Update a Tag"):
             ephemeral=True,
         )
         traceback.print_exception(type(error), error, error.__traceback__)
+
 
 class CreateTagsModal(discord.ui.Modal, title="Create a Tag"):
     """Modal for creating tags."""
@@ -363,7 +364,7 @@ class Tags(BaseCog):
             ],
             ephemeral=True,
         )
-    
+
     @acommand()
     @guild_only()
     async def add_button_link(self, ctx: discord.Interaction, tag_name: str, title: str, url: str) -> None:
@@ -398,7 +399,7 @@ class Tags(BaseCog):
             ],
             ephemeral=True,
         )
-    
+
     @acommand()
     @guild_only()
     @app_commands.describe(idx="The index of the button link to remove (1-indexed)")
