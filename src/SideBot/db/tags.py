@@ -13,16 +13,16 @@ class _Tags:
     """Internal DB class for tags."""
 
     async def write_schema(self) -> None:
-        async with self.conn.transaction():
+        async with self.conn.transaction(deferrable=False):
             for x in [
                 """
-                CREATE TYPE discorduser AS (
+                CREATE TYPE public.discorduser AS (
                     id BIGINT,
                     name TEXT
                 )
                 """,
                 """
-                CREATE TYPE buttonlink AS (
+                CREATE TYPE public.buttonlink AS (
                     label TEXT,
                     url TEXT
                 )
