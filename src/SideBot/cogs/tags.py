@@ -6,18 +6,18 @@ import typing
 
 import discord
 from discord import app_commands
+from discord.ext import commands
 from discord.app_commands import command as acommand
 from discord.app_commands import guild_only
 
 from SideBot import SideBot
 from SideBot.db.tags import Tag as DBTag
-from SideBot.utils import DiscordUser
+from SideBot.utils import DiscordUser, ButtonLink
 
 from .basecog import BaseCog
 
-
-class CreateTagsModal(discord.ui.Modal, title="Create a Tag"):
-    """Modal for creating tags."""
+class UpdateTagsModal(discord.ui.Modal, title="Update a Tag"):
+    """Modal for updating tags."""
 
     tagname: discord.ui.TextInput[discord.ui.View] = discord.ui.TextInput(
         label="Tag Name",
@@ -36,19 +36,78 @@ class CreateTagsModal(discord.ui.Modal, title="Create a Tag"):
         max_length=2000,
     )
 
-    button1_title: discord.ui.TextInput[discord.ui.View] = discord.ui.TextInput(
-        label="Button 1 Title",
-        placeholder="Button 1 Title",
+    @typing.override
+    async def on_submit(self, interaction: discord.Interaction[discord.Client]) -> None:
+        if not interaction.guild:
+            return await interaction.response.send_message(
+                embeds=[
+                    discord.Embed(
+                        title="400 Bad Request",
+                        description="This command can only be used in a guild.",
+                    ),
+                ],
+                ephemeral=True,
+            )
+        if not isinstance(interaction.client, SideBot):
+            return await interaction.response.send_message(
+                embeds=[
+                    discord.Embed(
+                        title="501 Not Implemented",
+                        description="Contact <@195864152856723456> if this happens :)",
+                    ),
+                ],
+                ephemeral=True,
+            )
+        tagobj: DBTag = DBTag.get(interaction.guild.id, self.tagname.value, interaction.client.connection)
+        tagobj.updated_at = datetime.datetime.now(tz=datetime.UTC)
+        tagobj.content = self.content.value
+        await tagobj.update(interaction.guild.id)
+        await interaction.response.send_message(
+            embeds=[
+                discord.Embed(
+                    title="200 OK",
+                    description="Tag updated",
+                ),
+            ],
+            ephemeral=True,
+        )
+        return None
+
+    @typing.no_type_check
+    @typing.override
+    async def on_error(
+        self,
+        interaction: discord.Interaction,
+        error: Exception,
+        /,
+    ) -> None:
+        await interaction.response.send_message(
+            embeds=[
+                discord.Embed(
+                    title="500 Internal Server Error",
+                    description="Something went wrong",
+                ),
+            ],
+            ephemeral=True,
+        )
+        traceback.print_exception(type(error), error, error.__traceback__)
+
+class CreateTagsModal(discord.ui.Modal, title="Create a Tag"):
+    """Modal for creating tags."""
+
+    tagname: discord.ui.TextInput[discord.ui.View] = discord.ui.TextInput(
+        label="Tag Name",
+        placeholder="Tag Name",
         style=discord.TextStyle.short,
-        required=False,
+        required=True,
         min_length=1,
         max_length=30,
     )
-    button1_link: discord.ui.TextInput[discord.ui.View] = discord.ui.TextInput(
-        label="Button 1 Link",
-        placeholder="Button 1 Link",
-        style=discord.TextStyle.short,
-        required=False,
+    content: discord.ui.TextInput[discord.ui.View] = discord.ui.TextInput(
+        label="Content",
+        placeholder="Content of the tag",
+        style=discord.TextStyle.long,
+        required=True,
         min_length=1,
         max_length=2000,
     )
@@ -242,8 +301,6 @@ class Tags(BaseCog):
     async def update(
         self,
         ctx: discord.Interaction,
-        tag_name: str,
-        content: str,
     ) -> None:
         """Update a tag."""
         if not ctx.guild:
@@ -257,14 +314,7 @@ class Tags(BaseCog):
                 ephemeral=True,
             )
         if isinstance(ctx.client, SideBot):
-            tag = await DBTag.get(ctx.guild.id, tag_name, ctx.client.connection)
-            await tag.update(ctx.guild.id, content)
-            return await ctx.response.send_message(
-                embeds=[
-                    discord.Embed(title="200 OK", description="Tag updated"),
-                ],
-                ephemeral=True,
-            )
+            return await ctx.response.send_modal(UpdateTagsModal())
 
         return await ctx.response.send_message(
             embeds=[
@@ -300,6 +350,76 @@ class Tags(BaseCog):
                             [tag.tagname async for tag in tags],
                         ),
                     ),
+                ],
+                ephemeral=True,
+            )
+
+        return await ctx.response.send_message(
+            embeds=[
+                discord.Embed(
+                    title="501 Not Implemented",
+                    description="Contact <@195864152856723456> if this happens :)",
+                ),
+            ],
+            ephemeral=True,
+        )
+    
+    @acommand()
+    @guild_only()
+    async def add_button_link(self, ctx: discord.Interaction, tag_name: str, title: str, url: str) -> None:
+        """Add a button link to a tag."""
+        if not ctx.guild:
+            return await ctx.response.send_message(
+                embeds=[
+                    discord.Embed(
+                        title="400 Bad Request",
+                        description="This command can only be used in a guild.",
+                    ),
+                ],
+                ephemeral=True,
+            )
+        if isinstance(ctx.client, SideBot):
+            tag = await DBTag.get(ctx.guild.id, tag_name, ctx.client.connection)
+            button_link = ButtonLink(title, url)
+            tag.button_links.append(button_link)
+            return await ctx.response.send_message(
+                embeds=[
+                    discord.Embed(title="200 OK", description="Button link added"),
+                ],
+                ephemeral=True,
+            )
+
+        return await ctx.response.send_message(
+            embeds=[
+                discord.Embed(
+                    title="501 Not Implemented",
+                    description="Contact <@195864152856723456> if this happens :)",
+                ),
+            ],
+            ephemeral=True,
+        )
+    
+    @acommand()
+    @guild_only()
+    @app_commands.describe(idx="The index of the button link to remove (1-indexed)")
+    async def remove_button_link(self, ctx: discord.Interaction, tag_name: str, idx: int) -> None:
+        """Remove a button link from a tag."""
+        if not ctx.guild:
+            return await ctx.response.send_message(
+                embeds=[
+                    discord.Embed(
+                        title="400 Bad Request",
+                        description="This command can only be used in a guild.",
+                    ),
+                ],
+                ephemeral=True,
+            )
+        if isinstance(ctx.client, SideBot):
+            tag = await DBTag.get(ctx.guild.id, tag_name, ctx.client.connection)
+            del tag.button_links[idx - 1]
+            return await ctx.response.send_message(
+                embeds=[
+                    discord.Embed(title="200 OK", description="Button link removed"),
                 ],
                 ephemeral=True,
             )

@@ -208,6 +208,6 @@ class Tag:
         """Delete a tag."""
         await self.tags.delete(guild_id, self.tagname)
 
-    async def update(self, guild_id: int, newcontent: str) -> None:
+    async def update(self, guild_id: int) -> None:
         """Update a tag."""
-        await self.tags.update(guild_id, self.tagname, newcontent)
+        await self.tags.update(guild_id, self.tagname, self.content)
