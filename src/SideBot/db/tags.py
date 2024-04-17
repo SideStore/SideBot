@@ -15,13 +15,13 @@ class _Tags:
     async def write_schema(self) -> None:
         for x in [
             """
-            CREATE TYPE IF NOT EXISTS discorduser AS (
+            CREATE TYPE discorduser AS (
                 id BIGINT,
                 name TEXT
             )
             """,
             """
-            CREATE TYPE IF NOT EXISTS buttonlink AS (
+            CREATE TYPE buttonlink AS (
                 label TEXT,
                 url TEXT
             )

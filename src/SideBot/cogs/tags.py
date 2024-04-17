@@ -76,7 +76,7 @@ class CreateTagsModal(discord.ui.Modal, title="Create a Tag"):
                 ],
                 ephemeral=True,
             )
-        tagobj: DBTag = await DBTag(
+        tagobj: DBTag = DBTag(
             self.tagname.value,
             self.content.value,
             DiscordUser.from_dpy_user(interaction.user),
@@ -85,7 +85,9 @@ class CreateTagsModal(discord.ui.Modal, title="Create a Tag"):
             [],
             0,
             interaction.client.connection,
-        ).finish()
+        )
+        if interaction.client.config.get("WRITE_SCHEMA", "false") == "true":
+            await tagobj.finish()
         await tagobj.create(interaction.guild.id)
         await interaction.response.send_message(
             embeds=[
