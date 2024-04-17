@@ -100,7 +100,7 @@ class _Tags:
         used: int = 0) -> None:
         """Save a tag."""
         await self.conn.execute(
-            """UPDATE tags
+            """UPDATE tags SET
             guild_id = $1, name = $2, content = $3, author = $4, button_links = $5, used = $6
             WHERE id = $7 """,
             guild_id,
