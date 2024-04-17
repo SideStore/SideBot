@@ -58,7 +58,7 @@ class UpdateTagsModal(discord.ui.Modal, title="Update a Tag"):
                 ],
                 ephemeral=True,
             )
-        tagobj: DBTag = DBTag.get(interaction.guild.id, self.tagname.value, interaction.client.connection)
+        tagobj: DBTag = await DBTag.get(interaction.guild.id, self.tagname.value, interaction.client.connection)
         tagobj.updated_at = datetime.datetime.now(tz=datetime.UTC)
         tagobj.content = self.content.value
         await tagobj.update(interaction.guild.id)
