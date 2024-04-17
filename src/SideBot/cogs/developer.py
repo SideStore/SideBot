@@ -30,7 +30,10 @@ class Developer(BaseCog):
         super().__init__(bot)
         self.description = "This is for ny only"
 
-    async def cog_before_invoke(self, ctx: commands.Context[Bot | AutoShardedBot]) -> None:
+    async def cog_before_invoke(
+        self,
+        ctx: commands.Context[Bot | AutoShardedBot],
+    ) -> None:
         """Delete text command messages."""
         try:
             await ctx.message.delete()
@@ -48,13 +51,19 @@ class Developer(BaseCog):
         """Load `cog`'s extension into the bot."""
         try:
             await self.bot.load_extension(f"SideBot.cogs.{cog}")
-            return await inter.response.send_message(f"Loaded {cog}!", ephemeral=True)
+            return await inter.response.send_message(
+                f"Loaded {cog}!",
+                ephemeral=True,
+            )
         except (ExtensionAlreadyLoaded, ExtensionNotFound) as err:
             if isinstance(err, ExtensionAlreadyLoaded):
                 msg = f"{cog} is already loaded!"
             else:
                 msg = f"{cog} could not be found!"
-            return await inter.response.send_message(f"{msg}\n{err}", ephemeral=True)
+            return await inter.response.send_message(
+                f"{msg}\n{err}",
+                ephemeral=True,
+            )
         except Exception as err:  # pylint: disable=W0718 # noqa: BLE001
             return await inter.response.send_message(
                 f"Failed to load {cog}!\n{err}",
@@ -71,7 +80,10 @@ class Developer(BaseCog):
             )
         try:
             await self.bot.unload_extension(f"SideBot.cogs.{cog}")
-            return await inter.response.send_message(f"Unloaded {cog}!", ephemeral=True)
+            return await inter.response.send_message(
+                f"Unloaded {cog}!",
+                ephemeral=True,
+            )
         except ExtensionNotLoaded:
             return await inter.response.send_message(
                 f"Failed to unload non-loaded {cog}!",
@@ -85,7 +97,10 @@ class Developer(BaseCog):
         """Reload `cog`'s extension file."""
         try:
             await self.bot.reload_extension(f"SideBot.cogs.{cog}")
-            return await inter.response.send_message(f"Reloaded {cog}!", ephemeral=True)
+            return await inter.response.send_message(
+                f"Reloaded {cog}!",
+                ephemeral=True,
+            )
         except (ExtensionNotLoaded, ExtensionNotFound) as err:
             if isinstance(err, ExtensionNotLoaded):
                 msg = f"Cannot reload {cog}! Did you forget to /load it?"
@@ -142,12 +157,19 @@ class Developer(BaseCog):
             else:
                 ret += 1
 
-        await ctx.send(f"Synced the tree to {ret}/{len(guilds)}.", delete_after=5)
+        await ctx.send(
+            f"Synced the tree to {ret}/{len(guilds)}.",
+            delete_after=5,
+        )
 
     @load.error
     @unload.error
     @reload.error
-    async def app_command_error(self, inter: Interaction, err: errors.AppCommandError) -> None:
+    async def app_command_error(
+        self,
+        inter: Interaction,
+        err: errors.AppCommandError,
+    ) -> None:
         """Handle app command errors."""
         if isinstance(err, errors.CheckFailure):
             if self.bot.owner_id != inter.user.id:

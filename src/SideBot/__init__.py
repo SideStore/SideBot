@@ -5,10 +5,12 @@ import logging
 import pathlib
 import typing
 
+import asyncpg
 import discord
-import psycopg2
 from discord.ext import commands
 from discord.ext.commands import AutoShardedBot, Bot, when_mentioned_or
+
+from .utils import ButtonLink, DiscordUser
 
 
 class SideBot(Bot):
@@ -22,15 +24,17 @@ class SideBot(Bot):
 
         intents = discord.Intents.all()
 
-        super().__init__(command_prefix=when_mentioned_or("##"), intents=intents)
+        super().__init__(
+            command_prefix=when_mentioned_or("##"),
+            intents=intents,
+        )
 
         self.owner_id = int(self.config["OWNER"])
         self.conf_cogs = self.config["COGS"].split(",")
-        self.connection = self.setup_connection()
 
-    def setup_connection(self) -> psycopg2.extensions.connection:
+    async def setup_connection(self) -> asyncpg.Connection:
         """Set up the database connection."""
-        return psycopg2.connect(self.config["DATABASE_URL"])
+        return await asyncpg.connect(self.config["DATABASE_URL"])
 
     async def setup_hook(self) -> None:
         """Set up cogs and app commands."""
@@ -43,12 +47,36 @@ class SideBot(Bot):
     async def on_ready(self) -> None:
         """Handle bot ready status."""
         if self.user:
-            self.logger.info("Logged in as %s (ID: %s)", self.user, self.user.id)
+            self.logger.info(
+                "Logged in as %s (ID: %s)",
+                self.user,
+                self.user.id,
+            )
+            self.connection: asyncpg.Connection = await self.setup_connection()
+
+            await self.connection.set_type_codec(
+                "discorduser",
+                encoder=DiscordUser.to_tuple,
+                decoder=DiscordUser.from_tuple,
+                format="tuple",
+            )
+
+            await self.connection.set_type_codec(
+                "buttonlink",
+                encoder=ButtonLink.to_tuple,
+                decoder=ButtonLink.from_tuple,
+                format="tuple",
+            )
+
         else:
             self.logger.error("Error getting user")
 
     # pylint: disable=W0221
-    async def on_command_error(self, ctx: commands.Context[Bot | AutoShardedBot], error: Exception) -> None:
+    async def on_command_error(
+        self,
+        ctx: commands.Context[Bot | AutoShardedBot],
+        error: Exception,
+    ) -> None:
         """Handle unhandled command errors."""
         self.logger.error(ctx)
         self.logger.error(error)
@@ -61,8 +89,8 @@ class SideBot(Bot):
     ) -> None:
         """Run the bot with the given token."""
         if token:
-            return super().run(token, root_logger=True, *args, **kwargs)
-        return super().run(self.__tok, root_logger=True, *args, **kwargs)
+            return super().run(token, *args, root_logger=True, **kwargs)
+        return super().run(self.__tok, *args, root_logger=True, **kwargs)
 
     @classmethod
     def from_env(cls, path: str = ".env") -> "SideBot":

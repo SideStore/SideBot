@@ -11,7 +11,12 @@ from discord.ext.commands import Bot, Cog
 class Utility(Cog):
     """The utility cog with various utility commands, listeners, etc."""
 
-    def __init__(self, bot: Bot, ultra_rare_threshold: float = 0.05, rare_threshold: float = 0.4) -> None:
+    def __init__(
+        self,
+        bot: Bot,
+        ultra_rare_threshold: float = 0.05,
+        rare_threshold: float = 0.4,
+    ) -> None:
         """Initialize the Utility cog."""
         self.bot = bot
         self.rare_threshold = rare_threshold
@@ -59,10 +64,6 @@ class Utility(Cog):
         """Auto pin and respond to user message in support forum thread."""
         if thread.parent_id not in [1020114888720384032, 1027594394477539410]:
             return
-        start = await anext(
-            thread.history(limit=1, oldest_first=True),
-        )
-        await start.pin()
         embed = discord.Embed(
             title="Support Ticket",
             description="We want to help you to the best of our ability, but first we have to ask"
@@ -102,7 +103,7 @@ class Utility(Cog):
             " open source maintainers who do all of this for free on our own time. Thank you!",
             inline=False,
         )
-        await start.reply(embed=embed)
+        await thread.send(embed=embed)
 
 
 async def setup(bot: Bot) -> None:

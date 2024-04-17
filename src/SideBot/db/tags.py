@@ -1,58 +1,146 @@
 """Tags database module."""
 
+import datetime
+from collections.abc import AsyncGenerator
 from typing import Any
 
-import psycopg2
+import asyncpg
+
+from SideBot.utils import ButtonLink, DiscordUser
 
 
 class _Tags:
-    def __init__(self, conn: psycopg2.extensions.connection) -> None:
+    """Internal DB class for tags."""
+
+    async def write_schema(self) -> None:
+        for x in [
+            """
+            CREATE TYPE public.discorduser AS (
+                id BIGINT,
+                name TEXT
+            )
+            """,
+            """
+            CREATE TYPE public.buttonlink AS (
+                label TEXT,
+                url TEXT
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS tags (
+                guild_id BIGINT,
+                id SERIAL PRIMARY KEY NOT NULL UNIQUE,
+                name TEXT NOT NULL,
+                content TEXT NOT NULL,
+                author discorduser NOT NULL,
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW(),
+                button_links buttonlink[],
+                used BIGINT DEFAULT 0
+            )
+            """,
+            "CREATE INDEX IF NOT EXISTS tags_guild_id_idx ON tags (guild_id, name)",
+        ]:
+            await self.conn.execute(
+                x,
+            )
+
+    def __init__(self, conn: asyncpg.Connection) -> None:
         """Tag database operations."""
-        self.conn = conn
-        self.cursor = conn.cursor()
-        self.cursor.execute(
-            "CREATE TABLE IF NOT EXISTS tags (guild_id BIGINT, name TEXT, content TEXT)",
-        )
+        self.conn: asyncpg.Connection = conn
 
-    def get(self, guild_id: int, tag_name: str) -> tuple[Any, ...] | None:
+    async def get(self, guild_id: int, tag_name: str) -> asyncpg.Record | None:
         """Get a tag."""
-        self.cursor.execute(
-            "SELECT content FROM tags WHERE guild_id = %s AND name = %s",
-            (guild_id, tag_name),
+        return await self.conn.fetchrow(
+            "SELECT * FROM tags WHERE guild_id = $1 AND name = $2",
+            guild_id,
+            tag_name,
         )
-        return self.cursor.fetchone()
 
-    def get_all(self, guild_id: int) -> list[tuple[Any, ...]]:
+    async def get_all(
+        self,
+        guild_id: int,
+    ) -> AsyncGenerator[asyncpg.Record, asyncpg.Record]:
         """Get all tags."""
-        self.cursor.execute(
-            "SELECT name, content FROM tags WHERE guild_id = %s",
-            (guild_id,),
+        fetchrow = await self.conn.fetch(
+            "SELECT * FROM tags WHERE guild_id = $1",
+            guild_id,
         )
-        return self.cursor.fetchall()
+        for row in fetchrow:
+            yield row
 
-    def create(self, guild_id: int, tag_name: str, content: str) -> None:
+    async def create(
+        self,
+        guild_id: int,
+        tag_name: str,
+        content: str,
+        author: DiscordUser,
+        button_links: list[ButtonLink],
+        used: int = 0,
+    ) -> None:
         """Create a tag."""
-        self.cursor.execute(
-            "INSERT INTO tags (guild_id, name, content) VALUES (%s, %s, %s)",
-            (guild_id, tag_name, content),
+        await self.conn.execute(
+            """INSERT INTO tags
+            (guild_id, name, content, author, button_links, used)
+            VALUES
+            ($1, $2, $3, $4, $5, $6)""",
+            guild_id,
+            tag_name,
+            content,
+            author,
+            button_links,
+            used,
         )
-        self.conn.commit()
 
-    def delete(self, guild_id: int, tag_name: str) -> None:
+    async def save(
+        self,
+        tag_id: int,
+        guild_id: int,
+        tag_name: str,
+        content: str,
+        author: DiscordUser,
+        button_links: list[ButtonLink],
+        used: int = 0,
+    ) -> None:
+        """Save a tag."""
+        await self.conn.execute(
+            """UPDATE tags SET
+            guild_id = $1, name = $2, content = $3, author = $4, button_links = $5, used = $6
+            WHERE id = $7 """,
+            guild_id,
+            tag_name,
+            content,
+            author,
+            button_links,
+            used,
+            tag_id,
+        )
+
+    async def delete(self, guild_id: int, tag_name: str) -> None:
         """Delete a tag."""
-        self.cursor.execute(
-            "DELETE FROM tags WHERE guild_id = %s AND name = %s",
-            (guild_id, tag_name),
+        await self.conn.execute(
+            "DELETE FROM tags WHERE guild_id = $1 AND name = $2",
+            guild_id,
+            tag_name,
         )
-        self.conn.commit()
 
-    def update(self, guild_id: int, tag_name: str, content: str) -> None:
+    async def update(self, guild_id: int, tag_name: str, content: str) -> None:
         """Update a tag."""
-        self.cursor.execute(
-            "UPDATE tags SET content = %s WHERE guild_id = %s AND name = %s",
-            (content, guild_id, tag_name),
+        await self.conn.execute(
+            "UPDATE tags SET content = $1, updated_at = $4 WHERE guild_id = $2 AND name = $3",
+            content,
+            guild_id,
+            tag_name,
+            datetime.datetime.now(),  # noqa: DTZ005
         )
-        self.conn.commit()
+
+    async def update_used_count(self, guild_id: int, tag_name: str) -> None:
+        """Update used count."""
+        await self.conn.execute(
+            "UPDATE tags SET used = used + 1 WHERE guild_id = $1 AND name = $2",
+            guild_id,
+            tag_name,
+        )
 
 
 class Tag:
@@ -60,37 +148,113 @@ class Tag:
 
     def __init__(
         self,
+        guild_id: int,
         tagname: str,
         content: str,
-        conn: psycopg2.extensions.connection,
+        author: DiscordUser,
+        created_at: datetime.datetime,
+        updated_at: datetime.datetime,
+        button_links: list[ButtonLink],
+        used_count: int,
+        ident: int | None,
+        conn: asyncpg.Connection,
     ) -> None:
         """Tag class."""
+        self.guildid = guild_id
         self.tagname = tagname
         self.content = content
+        self.author = author
+        self.created_at = created_at
+        self.updated_at = updated_at
+        self.button_links = button_links
+        self.used_count = used_count
+        self.id = ident
         self.tags = _Tags(conn)
 
+    async def finish(
+        self,
+    ) -> "Tag":
+        """Tag class."""
+        await self.tags.write_schema()
+        return self
+
     @classmethod
-    def get(cls, guild_id: int, tag_name: str, conn: psycopg2.extensions.connection) -> "Tag":
+    async def get(
+        cls,
+        guild_id: int,
+        tag_name: str,
+        conn: asyncpg.Connection,
+    ) -> "Tag":
         """Get a tag."""
-        tag = _Tags(conn).get(guild_id, tag_name)
+        tag = await _Tags(conn).get(guild_id, tag_name)
         if not tag:
             msg = f"Tag {tag_name} not found"
             raise ValueError(msg)
-        return cls(tag_name, tag[0], conn)
+        await _Tags(conn).update_used_count(guild_id, tag_name)
+        return cls(
+            guild_id,
+            tag_name,
+            tag["content"],
+            tag["author"],
+            tag["created_at"],
+            tag["updated_at"],
+            tag["button_links"],
+            tag["used"],
+            tag["id"],
+            conn,
+        )
 
     @classmethod
-    def get_all(cls, guild_id: int, conn: psycopg2.extensions.connection) -> list["Tag"]:
+    async def get_all(
+        cls,
+        guild_id: int,
+        conn: asyncpg.Connection,
+    ) -> AsyncGenerator["Tag", Any]:
         """Get all tags."""
-        return [cls(tag_name, content, conn) for tag_name, content in _Tags(conn).get_all(guild_id)]
+        async for tag in _Tags(conn).get_all(guild_id):
+            yield cls(
+                guild_id,
+                tag["name"],
+                tag["content"],
+                tag["author"],
+                tag["created_at"],
+                tag["updated_at"],
+                tag["button_links"],
+                tag["used"],
+                tag["id"],
+                conn,
+            )
 
-    def create(self, guild_id: int) -> None:
+    async def create(self) -> None:
         """Create a tag."""
-        self.tags.create(guild_id, self.tagname, self.content)
+        await self.tags.create(
+            self.guildid,
+            self.tagname,
+            self.content,
+            self.author,
+            self.button_links,
+            self.used_count,
+        )
 
-    def delete(self, guild_id: int) -> None:
+    async def delete(self) -> None:
         """Delete a tag."""
-        self.tags.delete(guild_id, self.tagname)
+        await self.tags.delete(self.guildid, self.tagname)
 
-    def update(self, guild_id: int) -> None:
+    async def update(self) -> None:
         """Update a tag."""
-        self.tags.update(guild_id, self.tagname, self.content)
+        await self.tags.update(self.guildid, self.tagname, self.content)
+
+    async def save(self) -> None:
+        """Save a tag."""
+        if not self.id:
+            return await self.create()
+        await self.tags.save(
+            self.id,
+            self.guildid,
+            self.tagname,
+            self.content,
+            self.author,
+            self.button_links,
+            self.used_count,
+        )
+        return None
