@@ -75,23 +75,19 @@ class _Tags:
         tag_name: str,
         content: str,
         author: DiscordUser,
-        created_at: datetime.datetime,
-        updated_at: datetime.datetime,
         button_links: list[ButtonLink],
         used: int = 0,
     ) -> None:
         """Create a tag."""
         await self.conn.execute(
             """INSERT INTO tags
-            (guild_id, name, content, author, created_at, updated_at, button_links, used)
+            (guild_id, name, content, author, button_links, used)
             VALUES
-            ($1, $2, $3, $4, $5, $6, $7, $8)""",
+            ($1, $2, $3, $4, $5, $6,)""",
             guild_id,
             tag_name,
             content,
             author,
-            created_at,
-            updated_at,
             button_links,
             used,
         )
@@ -204,8 +200,6 @@ class Tag:
             self.tagname,
             self.content,
             self.author,
-            self.created_at,
-            self.updated_at,
             self.button_links,
             self.used_count,
         )
