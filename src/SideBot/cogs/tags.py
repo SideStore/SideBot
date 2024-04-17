@@ -446,6 +446,7 @@ class Tags(BaseCog):
         if isinstance(ctx.client, SideBot):
             tag = await DBTag.get(ctx.guild.id, tag_name, ctx.client.connection)
             del tag.button_links[idx - 1]
+            await tag.save()
             return await ctx.response.send_message(
                 embeds=[
                     discord.Embed(title="200 OK", description="Button link removed"),
