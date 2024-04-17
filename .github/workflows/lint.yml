@@ -34,8 +34,11 @@ jobs:
       run: |
         pip install .[dev]
 
-    - name: Run Linter
-      run: pylint src
+    - uses: chartboost/ruff-action@v1
+
+    - uses: chartboost/ruff-action@v1
+      with:
+        args: 'format --check'
     
     - name: Run mypy
       run: mypy src/SideBot
