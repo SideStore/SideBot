@@ -197,7 +197,7 @@ class Tags(BaseCog):
             view.add_item(
                 discord.ui.Button(
                     style=discord.ButtonStyle.link,
-                    label=button_link.label,
+                    label=label,
                     url=button_link.url,
                     emoji=emoji,
                 ),
