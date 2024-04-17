@@ -83,7 +83,7 @@ class _Tags:
             """INSERT INTO tags
             (guild_id, name, content, author, button_links, used)
             VALUES
-            ($1, $2, $3, $4, $5, $6,)""",
+            ($1, $2, $3, $4, $5, $6)""",
             guild_id,
             tag_name,
             content,
