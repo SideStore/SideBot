@@ -249,5 +249,5 @@ class Tag:
         if not self.id:
             await self.create()
         await self.tags.save(
-            self.id, self.guildid, self.tagname, self.content, self.author, self.button_links, self.used_count
+            self.id, self.guildid, self.tagname, self.content, self.author, self.button_links, self.used_count,
         )
