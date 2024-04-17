@@ -2,7 +2,7 @@
 
 import datetime
 from collections.abc import AsyncGenerator
-from typing import Any, Optional
+from typing import Any
 
 import asyncpg
 
@@ -92,12 +92,16 @@ class _Tags:
             used,
         )
 
-    async def save(self,tag_id:int,  guild_id: int,
+    async def save(
+        self,
+        tag_id: int,
+        guild_id: int,
         tag_name: str,
         content: str,
         author: DiscordUser,
         button_links: list[ButtonLink],
-        used: int = 0) -> None:
+        used: int = 0,
+    ) -> None:
         """Save a tag."""
         await self.conn.execute(
             """UPDATE tags SET
@@ -109,7 +113,7 @@ class _Tags:
             author,
             button_links,
             used,
-            tag_id
+            tag_id,
         )
 
     async def delete(self, guild_id: int, tag_name: str) -> None:
@@ -152,7 +156,7 @@ class Tag:
         updated_at: datetime.datetime,
         button_links: list[ButtonLink],
         used_count: int,
-        ident: Optional[int],
+        ident: int | None,
         conn: asyncpg.Connection,
     ) -> None:
         """Tag class."""
@@ -241,5 +245,9 @@ class Tag:
         await self.tags.update(self.guildid, self.tagname, self.content)
 
     async def save(self) -> None:
-        assert self.id is not None
-        await self.tags.save(self.id, self.guildid, self.tagname, self.content, self.author, self.button_links, self.used_count)
+        """Save a tag."""
+        if not self.id:
+            await self.create()
+        await self.tags.save(
+            self.id, self.guildid, self.tagname, self.content, self.author, self.button_links, self.used_count
+        )
