@@ -8,14 +8,11 @@ import asyncpg
 import discord
 
 
-class _Tags(Awaitable[None]):
+class _Tags:
 
     """Internal DB class for tags."""
 
-    def __await__(self) -> Generator[Any, None, None]:
-        return self._awaitable().__await__()
-
-    async def _awaitable(self) -> None:
+    async def write_schema(self) -> None:
         for x in [
             """
             CREATE TYPE IF NOT EXISTS discorduser AS (
@@ -189,7 +186,7 @@ class Tag:
         self,
     ) -> "Tag":
         """Tag class."""
-        await self.tags
+        await self.tags.write_schema()
         return self
 
     @classmethod
