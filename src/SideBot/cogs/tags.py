@@ -54,23 +54,6 @@ class CreateTagsModal(discord.ui.Modal, title="Create a Tag"):
         max_length=2000,
     )
 
-    button2_title: discord.ui.TextInput[discord.ui.View] = discord.ui.TextInput(
-        label="Button 2 Title",
-        placeholder="Button 2 Title",
-        style=discord.TextStyle.short,
-        required=False,
-        min_length=1,
-        max_length=30,
-    )
-    button2_link: discord.ui.TextInput[discord.ui.View] = discord.ui.TextInput(
-        label="Button 2 Link",
-        placeholder="Button 2 Link",
-        style=discord.TextStyle.short,
-        required=False,
-        min_length=1,
-        max_length=2000,
-    )
-
     @typing.override
     async def on_submit(self, interaction: discord.Interaction[discord.Client]) -> None:
         if not interaction.guild:
