@@ -85,7 +85,7 @@ class CreateTagsModal(discord.ui.Modal, title="Create a Tag"):
             [],
             0,
             interaction.client.connection,
-        )
+        ).finish()
         await tagobj.create(interaction.guild.id)
         await interaction.response.send_message(
             embeds=[

@@ -160,7 +160,7 @@ class ButtonLink:
         return cls(*button)
 
 
-class Tag(Awaitable["Tag"]):
+class Tag:
 
     """Tag class."""
 
@@ -184,10 +184,6 @@ class Tag(Awaitable["Tag"]):
         self.button_links = button_links
         self.used_count = used_count
         self.tags = _Tags(conn)
-
-    def __await__(self) -> Generator[Any, None, "Tag"]:
-        """Tag class."""
-        return self.finish().__await__()
 
     async def finish(
         self,
