@@ -63,7 +63,7 @@ class _Tags:
     ) -> AsyncGenerator[asyncpg.Record, asyncpg.Record]:
         """Get all tags."""
         fetchrow = await self.conn.fetch(
-            "SELECT name, content, author, created_at, updated_at, button_links, used_count FROM tags WHERE guild_id = $1",
+            "SELECT name, content, author, created_at, updated_at, button_links, used FROM tags WHERE guild_id = $1",
             guild_id,
         )
         for row in fetchrow:
@@ -170,7 +170,7 @@ class Tag:
             tag["created_at"],
             tag["updated_at"],
             tag["button_links"],
-            tag["used_count"],
+            tag["used"],
             conn,
         )
 
@@ -189,7 +189,7 @@ class Tag:
                 tag["created_at"],
                 tag["updated_at"],
                 tag["button_links"],
-                tag["used_count"],
+                tag["used"],
                 conn,
             )
 
