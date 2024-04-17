@@ -13,38 +13,37 @@ class _Tags:
     """Internal DB class for tags."""
 
     async def write_schema(self) -> None:
-        async with self.conn.transaction(deferrable=False):
-            for x in [
-                """
-                CREATE TYPE public.discorduser AS (
-                    id BIGINT,
-                    name TEXT
-                )
-                """,
-                """
-                CREATE TYPE public.buttonlink AS (
-                    label TEXT,
-                    url TEXT
-                )
-                """,
-                """
-                CREATE TABLE IF NOT EXISTS tags (
-                    guild_id BIGINT,
-                    id SERIAL PRIMARY KEY NOT NULL UNIQUE,
-                    name CITEXT NOT NULL,
-                    content TEXT NOT NULL,
-                    author discorduser NOT NULL,
-                    created_at TIMESTAMP DEFAULT NOW(),
-                    updated_at TIMESTAMP DEFAULT NOW(),
-                    button_links buttonlink[],
-                    used BIGINT DEFAULT 0
-                )
-                """,
-                "CREATE INDEX IF NOT EXISTS tags_guild_id_idx ON tags (guild_id, name)",
-            ]:
-                await self.conn.cursor(
-                    x,
-                )
+        for x in [
+            """
+            CREATE TYPE public.discorduser AS (
+                id BIGINT,
+                name TEXT
+            )
+            """,
+            """
+            CREATE TYPE public.buttonlink AS (
+                label TEXT,
+                url TEXT
+            )
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS tags (
+                guild_id BIGINT,
+                id SERIAL PRIMARY KEY NOT NULL UNIQUE,
+                name CITEXT NOT NULL,
+                content TEXT NOT NULL,
+                author discorduser NOT NULL,
+                created_at TIMESTAMP DEFAULT NOW(),
+                updated_at TIMESTAMP DEFAULT NOW(),
+                button_links buttonlink[],
+                used BIGINT DEFAULT 0
+            )
+            """,
+            "CREATE INDEX IF NOT EXISTS tags_guild_id_idx ON tags (guild_id, name)",
+        ]:
+            await self.conn.execute(
+                x,
+            )
 
 
         await self.conn.set_type_codec(
