@@ -82,10 +82,7 @@ class SideBot(Bot):
         """Load the bot from a .env file with the proper configuration."""
         with pathlib.Path(path).open(encoding="utf-8") as env:
             conf = {
-                k: v
-                for line in env
-                if (k := line.strip().split("=", 1)[0])
-                and (v := line.strip().split("=", 1)[1])
+                k: v for line in env if (k := line.strip().split("=", 1)[0]) and (v := line.strip().split("=", 1)[1])
             }
 
         return cls(conf)

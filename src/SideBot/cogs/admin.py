@@ -138,11 +138,7 @@ class Admin(BaseCog):
     @BaseCog.listener()
     async def on_message(self, message: Message) -> None:
         """Handle messages to detect for spam."""
-        if (
-            self.bot.user is None
-            or message.guild is None
-            or message.author.id == self.bot.user.id
-        ):
+        if self.bot.user is None or message.guild is None or message.author.id == self.bot.user.id:
             return
         if message.author.id not in [su.i for su in self.spammers]:
             self.spammers.append(
@@ -183,10 +179,7 @@ class Admin(BaseCog):
                 if isinstance(chan, TextChannel):
                     del_chans.append(
                         chan.delete_messages(
-                            [
-                                chan.get_partial_message(msg.i)
-                                for msg in channel.messages
-                            ],
+                            [chan.get_partial_message(msg.i) for msg in channel.messages],
                         ),
                     )
             await asyncio.gather(*del_chans)

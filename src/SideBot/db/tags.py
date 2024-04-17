@@ -1,18 +1,21 @@
 """Tags database module."""
 
-import asyncio
 import datetime
-from collections.abc import AsyncGenerator
+from collections.abc import AsyncGenerator, Awaitable, Generator
 from typing import Any
 
 import asyncpg
+import discord
 
 
-class _Tags:
-    def __init__(self, conn: asyncpg.Connection) -> None:
-        """Tag database operations."""
-        self.conn = conn
-        tasks = set()
+class _Tags(Awaitable[None]):
+
+    """Internal DB class for tags."""
+
+    def __await__(self) -> Generator[Any, None, None]:
+        return self._awaitable().__await__()
+
+    async def _awaitable(self) -> None:
         for x in [
             """
             CREATE TYPE IF NOT EXISTS discorduser AS (
@@ -29,9 +32,10 @@ class _Tags:
             """
             CREATE TABLE IF NOT EXISTS tags (
                 guild_id BIGINT,
-                name TEXT UNIQUE PRIMARY KEY,
-                content TEXT,
-                author BIGINT,
+                id SERIAL PRIMARY KEY NOT NULL UNIQUE ON CONFLICT REPLACE AUTOINCREMENT,
+                name CITEXT NOT NULL,
+                content TEXT NOT NULL,
+                author discorduser NOT NULL,
                 created_at TIMESTAMP DEFAULT NOW(),
                 updated_at TIMESTAMP DEFAULT NOW(),
                 button_links buttonlink[],
@@ -40,33 +44,27 @@ class _Tags:
             """,
             "CREATE INDEX IF NOT EXISTS tags_guild_id_idx ON tags (guild_id, name)",
         ]:
-            task = asyncio.create_task(
-                self.conn.cursor(
-                    x,
-                ),
+            await self.conn.cursor(
+                x,
             )
-            tasks.add(task)
-            task.add_done_callback(lambda _: tasks.remove(task))
-        task = asyncio.create_task(
-            self.conn.set_type_codec(
-                "discorduser",
-                encoder=DiscordUser.to_tuple,
-                decoder=DiscordUser.from_tuple,
-                format="tuple",
-            ),
+
+        await self.conn.set_type_codec(
+            "discorduser",
+            encoder=DiscordUser.to_tuple,
+            decoder=DiscordUser.from_tuple,
+            format="tuple",
         )
-        tasks.add(task)
-        task.add_done_callback(lambda _: tasks.remove(task))
-        task = asyncio.create_task(
-            self.conn.set_type_codec(
-                "buttonlink",
-                encoder=ButtonLink.to_tuple,
-                decoder=ButtonLink.from_tuple,
-                format="tuple",
-            ),
+
+        await self.conn.set_type_codec(
+            "buttonlink",
+            encoder=ButtonLink.to_tuple,
+            decoder=ButtonLink.from_tuple,
+            format="tuple",
         )
-        tasks.add(task)
-        task.add_done_callback(lambda _: tasks.remove(task))
+
+    def __init__(self, conn: asyncpg.Connection[asyncpg.Record]) -> None:
+        """Tag database operations."""
+        self.conn: asyncpg.Connection[asyncpg.Record] = conn
 
     async def get(self, guild_id: int, tag_name: str) -> asyncpg.Record | None:
         """Get a tag."""
@@ -81,11 +79,11 @@ class _Tags:
         guild_id: int,
     ) -> AsyncGenerator[asyncpg.Record, asyncpg.Record]:
         """Get all tags."""
-        cursor = await self.conn.cursor(
+        cursor = self.conn.cursor(
             "SELECT content FROM tags WHERE guild_id = %s",
             (guild_id),
         )
-        for row in await cursor:
+        async for row in cursor:
             yield row
 
     async def create(self, guild_id: int, tag_name: str, content: str) -> None:
@@ -121,9 +119,9 @@ class DiscordUser:
 
     """DiscordUser class."""
 
-    def __init__(self, id: int, name: str) -> None:
+    def __init__(self, iden: int, name: str) -> None:
         """DiscordUser class."""
-        self.id = id
+        self.id = iden
         self.name = name
 
     @classmethod
@@ -135,6 +133,11 @@ class DiscordUser:
     def from_tuple(cls, user: tuple[int, str]) -> "DiscordUser":
         """Convert from tuple."""
         return cls(*user)
+
+    @classmethod
+    def from_dpy_user(cls, user: discord.User | discord.Member) -> "DiscordUser":
+        """Convert from discord.py User."""
+        return cls(user.id, user.name)
 
 
 class ButtonLink:
@@ -157,7 +160,7 @@ class ButtonLink:
         return cls(*button)
 
 
-class Tag:
+class Tag(Awaitable["Tag"]):
 
     """Tag class."""
 
@@ -168,8 +171,9 @@ class Tag:
         author: DiscordUser,
         created_at: datetime.datetime,
         updated_at: datetime.datetime,
-        button_links: list[dict[str, str]],
-        conn: asyncpg.Connection,
+        button_links: list[ButtonLink],
+        used_count: int,
+        conn: asyncpg.Connection[asyncpg.Record],
     ) -> None:
         """Tag class."""
         self.tagname = tagname
@@ -178,14 +182,26 @@ class Tag:
         self.created_at = created_at
         self.updated_at = updated_at
         self.button_links = button_links
+        self.used_count = used_count
         self.tags = _Tags(conn)
+
+    def __await__(self) -> Generator[Any, None, "Tag"]:
+        """Tag class."""
+        return self.finish().__await__()
+
+    async def finish(
+        self,
+    ) -> "Tag":
+        """Tag class."""
+        await self.tags
+        return self
 
     @classmethod
     async def get(
         cls,
         guild_id: int,
         tag_name: str,
-        conn: asyncpg.Connection,
+        conn: asyncpg.Connection[asyncpg.Record],
     ) -> "Tag":
         """Get a tag."""
         tag = await _Tags(conn).get(guild_id, tag_name)
@@ -195,7 +211,6 @@ class Tag:
         await _Tags(conn).update_used_count(guild_id, tag_name)
         return cls(
             tag_name,
-            tag["name"],
             tag["content"],
             tag["author"],
             tag["created_at"],
@@ -209,7 +224,7 @@ class Tag:
     async def get_all(
         cls,
         guild_id: int,
-        conn: asyncpg.Connection,
+        conn: asyncpg.Connection[asyncpg.Record],
     ) -> AsyncGenerator["Tag", Any]:
         """Get all tags."""
         async for tag in _Tags(conn).get_all(guild_id):
@@ -232,6 +247,6 @@ class Tag:
         """Delete a tag."""
         await self.tags.delete(guild_id, self.tagname)
 
-    async def update(self, guild_id: int) -> None:
+    async def update(self, guild_id: int, newcontent: str) -> None:
         """Update a tag."""
-        await self.tags.update(guild_id, self.tagname, self.content)
+        await self.tags.update(guild_id, self.tagname, newcontent)
