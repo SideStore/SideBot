@@ -10,8 +10,8 @@ from discord.app_commands import command as acommand
 from discord.app_commands import guild_only
 
 from SideBot import SideBot
-from SideBot.db.tags import DiscordUser
 from SideBot.db.tags import Tag as DBTag
+from SideBot.utils import DiscordUser
 
 from .basecog import BaseCog
 

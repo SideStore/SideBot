@@ -69,13 +69,31 @@ class _Tags:
         for row in fetchrow:
             yield row
 
-    async def create(self, guild_id: int, tag_name: str, content: str) -> None:
+    async def create(
+        self,
+        guild_id: int,
+        tag_name: str,
+        content: str,
+        author: DiscordUser,
+        created_at: datetime.datetime,
+        updated_at: datetime.datetime,
+        button_links: list[ButtonLink],
+        used: int = 0,
+    ) -> None:
         """Create a tag."""
         await self.conn.execute(
-            "INSERT INTO tags (guild_id, name, content) VALUES ($1, $2, $3)",
+            """INSERT INTO tags
+            (guild_id, name, content, author, created_at, updated_at, button_links, used)
+            VALUES
+            ($1, $2, $3, $4, $5, $6, $7, $8)""",
             guild_id,
             tag_name,
             content,
+            author,
+            created_at,
+            updated_at,
+            button_links,
+            used,
         )
 
     async def delete(self, guild_id: int, tag_name: str) -> None:
@@ -89,10 +107,11 @@ class _Tags:
     async def update(self, guild_id: int, tag_name: str, content: str) -> None:
         """Update a tag."""
         await self.conn.execute(
-            "UPDATE tags SET content = $1 WHERE guild_id = $2 AND name = $3",
+            "UPDATE tags SET content = $1, updated_at = $4 WHERE guild_id = $2 AND name = $3",
             content,
             guild_id,
             tag_name,
+            datetime.datetime.now(tz=datetime.UTC),
         )
 
     async def update_used_count(self, guild_id: int, tag_name: str) -> None:
@@ -180,7 +199,16 @@ class Tag:
 
     async def create(self, guild_id: int) -> None:
         """Create a tag."""
-        await self.tags.create(guild_id, self.tagname, self.content)
+        await self.tags.create(
+            guild_id,
+            self.tagname,
+            self.content,
+            self.author,
+            self.created_at,
+            self.updated_at,
+            self.button_links,
+            self.used_count,
+        )
 
     async def delete(self, guild_id: int) -> None:
         """Delete a tag."""
