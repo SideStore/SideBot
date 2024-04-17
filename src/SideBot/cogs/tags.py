@@ -190,14 +190,14 @@ class Tags(BaseCog):
             custom_emojis = re.search(r"<:\d+>|<:.+?:\d+>|<a:.+:\d+>|[\U00010000-\U0010ffff]", button_link.label)
             if custom_emojis is not None:
                 emoji = custom_emojis.group(0).strip()
-                label = button_link.label.replace(emoji, "")
-                label = label.strip()
+                button_link.label = button_link.label.replace(emoji, "")
+                button_link.label = button_link.label.strip()
             else:
                 emoji = None
             view.add_item(
                 discord.ui.Button(
                     style=discord.ButtonStyle.link,
-                    label=label,
+                    label=button_link.label,
                     url=button_link.url,
                     emoji=emoji,
                 ),
