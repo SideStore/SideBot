@@ -1,7 +1,6 @@
 """Main module for the SideBot."""
 
 # pylint: disable=C0103,C0114
-import asyncio
 import logging
 import pathlib
 import typing
@@ -11,9 +10,10 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import AutoShardedBot, Bot, when_mentioned_or
 
+from .utils import ButtonLink, DiscordUser
+
 
 class SideBot(Bot):
-
     """Custom SideBot class to simplify start up."""
 
     def __init__(self, config: dict[str, str]) -> None:
@@ -53,6 +53,20 @@ class SideBot(Bot):
                 self.user.id,
             )
             self.connection: asyncpg.Connection = await self.setup_connection()
+
+            await self.connection.set_type_codec(
+                "discorduser",
+                encoder=DiscordUser.to_tuple,
+                decoder=DiscordUser.from_tuple,
+                format="tuple",
+            )
+
+            await self.connection.set_type_codec(
+                "buttonlink",
+                encoder=ButtonLink.to_tuple,
+                decoder=ButtonLink.from_tuple,
+                format="tuple",
+            )
 
         else:
             self.logger.error("Error getting user")

@@ -17,7 +17,6 @@ from .basecog import BaseCog
 
 
 class CreateTagsModal(discord.ui.Modal, title="Create a Tag"):
-
     """Modal for creating tags."""
 
     tagname: discord.ui.TextInput[discord.ui.View] = discord.ui.TextInput(
@@ -103,7 +102,10 @@ class CreateTagsModal(discord.ui.Modal, title="Create a Tag"):
     @typing.no_type_check
     @typing.override
     async def on_error(
-        self, interaction: discord.Interaction, error: Exception, /,
+        self,
+        interaction: discord.Interaction,
+        error: Exception,
+        /,
     ) -> None:
         await interaction.response.send_message(
             embeds=[
@@ -118,7 +120,6 @@ class CreateTagsModal(discord.ui.Modal, title="Create a Tag"):
 
 
 class Tags(BaseCog):
-
     """Tags cog with commands for tags."""
 
     @acommand()

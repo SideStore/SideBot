@@ -23,7 +23,6 @@ from .basecog import BaseCog
 
 
 class Developer(BaseCog):
-
     """Developer cog with developer only commands."""
 
     def __init__(self, bot: Bot) -> None:

@@ -13,7 +13,6 @@ from .basecog import BaseCog
 
 
 class SpamMessage:
-
     """A message representation."""
 
     __slots__ = ("i",)
@@ -28,7 +27,6 @@ class SpamMessage:
 
 
 class SpamChannel:
-
     """A channel representation that holds messages."""
 
     __slots__ = ("i", "messages")
@@ -49,7 +47,6 @@ class SpamChannel:
 
 
 class SpamUser:
-
     """A user representation that holds channels."""
 
     __slots__ = ("i", "channels")
@@ -70,7 +67,6 @@ class SpamUser:
 
 
 class Admin(BaseCog):
-
     """Admin cog with commands for moderation."""
 
     def __init__(self, bot: Bot, channels_max: int = 4) -> None:

@@ -1,15 +1,15 @@
 """Tags database module."""
 
 import datetime
-from collections.abc import AsyncGenerator, Awaitable, Generator
+from collections.abc import AsyncGenerator
 from typing import Any
 
 import asyncpg
-import discord
+
+from SideBot.utils import ButtonLink, DiscordUser
 
 
 class _Tags:
-
     """Internal DB class for tags."""
 
     async def write_schema(self) -> None:
@@ -45,21 +45,6 @@ class _Tags:
                 x,
             )
 
-
-        await self.conn.set_type_codec(
-            "discorduser",
-            encoder=DiscordUser.to_tuple,
-            decoder=DiscordUser.from_tuple,
-            format="tuple",
-        )
-
-        await self.conn.set_type_codec(
-            "buttonlink",
-            encoder=ButtonLink.to_tuple,
-            decoder=ButtonLink.from_tuple,
-            format="tuple",
-        )
-
     def __init__(self, conn: asyncpg.Connection) -> None:
         """Tag database operations."""
         self.conn: asyncpg.Connection = conn
@@ -68,7 +53,8 @@ class _Tags:
         """Get a tag."""
         return await self.conn.fetchrow(
             "SELECT content FROM tags WHERE guild_id = $1 AND name = $2",
-            guild_id, tag_name,
+            guild_id,
+            tag_name,
         )
 
     async def get_all(
@@ -87,78 +73,38 @@ class _Tags:
         """Create a tag."""
         await self.conn.execute(
             "INSERT INTO tags (guild_id, name, content) VALUES ($1, $2, $3)",
-            guild_id, tag_name, content,
+            guild_id,
+            tag_name,
+            content,
         )
 
     async def delete(self, guild_id: int, tag_name: str) -> None:
         """Delete a tag."""
         await self.conn.execute(
             "DELETE FROM tags WHERE guild_id = $1 AND name = $2",
-            guild_id, tag_name,
+            guild_id,
+            tag_name,
         )
 
     async def update(self, guild_id: int, tag_name: str, content: str) -> None:
         """Update a tag."""
         await self.conn.execute(
             "UPDATE tags SET content = $1 WHERE guild_id = $2 AND name = $3",
-            content, guild_id, tag_name,
+            content,
+            guild_id,
+            tag_name,
         )
 
     async def update_used_count(self, guild_id: int, tag_name: str) -> None:
         """Update used count."""
         await self.conn.execute(
             "UPDATE tags SET used = used + 1 WHERE guild_id = $1 AND name = $2",
-            guild_id, tag_name,
+            guild_id,
+            tag_name,
         )
 
 
-class DiscordUser:
-
-    """DiscordUser class."""
-
-    def __init__(self, iden: int, name: str) -> None:
-        """DiscordUser class."""
-        self.id = iden
-        self.name = name
-
-    @classmethod
-    def to_tuple(cls, user: "DiscordUser") -> tuple[int, str]:
-        """Convert to tuple."""
-        return user.id, user.name
-
-    @classmethod
-    def from_tuple(cls, user: tuple[int, str]) -> "DiscordUser":
-        """Convert from tuple."""
-        return cls(*user)
-
-    @classmethod
-    def from_dpy_user(cls, user: discord.User | discord.Member) -> "DiscordUser":
-        """Convert from discord.py User."""
-        return cls(user.id, user.name)
-
-
-class ButtonLink:
-
-    """ButtonLink class."""
-
-    def __init__(self, label: str, url: str) -> None:
-        """ButtonLink class."""
-        self.label = label
-        self.url = url
-
-    @classmethod
-    def to_tuple(cls, button: "ButtonLink") -> tuple[str, str]:
-        """Convert to tuple."""
-        return button.label, button.url
-
-    @classmethod
-    def from_tuple(cls, button: tuple[str, str]) -> "ButtonLink":
-        """Convert from tuple."""
-        return cls(*button)
-
-
 class Tag:
-
     """Tag class."""
 
     def __init__(
