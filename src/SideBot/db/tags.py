@@ -52,7 +52,7 @@ class _Tags:
     async def get(self, guild_id: int, tag_name: str) -> asyncpg.Record | None:
         """Get a tag."""
         return await self.conn.fetchrow(
-            "SELECT content FROM tags WHERE guild_id = $1 AND name = $2",
+            "SELECT * FROM tags WHERE guild_id = $1 AND name = $2",
             guild_id,
             tag_name,
         )
