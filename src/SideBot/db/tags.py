@@ -247,7 +247,7 @@ class Tag:
     async def save(self) -> None:
         """Save a tag."""
         if not self.id:
-            await self.create()
+            return await self.create()
         await self.tags.save(
             self.id,
             self.guildid,
