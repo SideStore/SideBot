@@ -30,7 +30,7 @@ class _Tags:
                 """
                 CREATE TABLE IF NOT EXISTS tags (
                     guild_id BIGINT,
-                    id SERIAL PRIMARY KEY NOT NULL UNIQUE ON CONFLICT REPLACE AUTOINCREMENT,
+                    id SERIAL PRIMARY KEY NOT NULL UNIQUE AUTOINCREMENT,
                     name CITEXT NOT NULL,
                     content TEXT NOT NULL,
                     author discorduser NOT NULL,

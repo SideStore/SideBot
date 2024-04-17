@@ -103,7 +103,7 @@ class CreateTagsModal(discord.ui.Modal, title="Create a Tag"):
     @typing.no_type_check
     @typing.override
     async def on_error(
-        self, interaction: discord.Interaction, error: Exception, item: discord.ui.Item[typing.Any], /,
+        self, interaction: discord.Interaction, error: Exception, /,
     ) -> None:
         await interaction.response.send_message(
             embeds=[
