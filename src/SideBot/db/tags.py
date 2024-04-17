@@ -13,37 +13,39 @@ class _Tags:
     """Internal DB class for tags."""
 
     async def write_schema(self) -> None:
-        for x in [
-            """
-            CREATE TYPE discorduser AS (
-                id BIGINT,
-                name TEXT
-            )
-            """,
-            """
-            CREATE TYPE buttonlink AS (
-                label TEXT,
-                url TEXT
-            )
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS tags (
-                guild_id BIGINT,
-                id SERIAL PRIMARY KEY NOT NULL UNIQUE ON CONFLICT REPLACE AUTOINCREMENT,
-                name CITEXT NOT NULL,
-                content TEXT NOT NULL,
-                author discorduser NOT NULL,
-                created_at TIMESTAMP DEFAULT NOW(),
-                updated_at TIMESTAMP DEFAULT NOW(),
-                button_links buttonlink[],
-                used BIGINT DEFAULT 0
-            )
-            """,
-            "CREATE INDEX IF NOT EXISTS tags_guild_id_idx ON tags (guild_id, name)",
-        ]:
-            await self.conn.cursor(
-                x,
-            )
+        async with self.conn.transaction():
+            for x in [
+                """
+                CREATE TYPE discorduser AS (
+                    id BIGINT,
+                    name TEXT
+                )
+                """,
+                """
+                CREATE TYPE buttonlink AS (
+                    label TEXT,
+                    url TEXT
+                )
+                """,
+                """
+                CREATE TABLE IF NOT EXISTS tags (
+                    guild_id BIGINT,
+                    id SERIAL PRIMARY KEY NOT NULL UNIQUE ON CONFLICT REPLACE AUTOINCREMENT,
+                    name CITEXT NOT NULL,
+                    content TEXT NOT NULL,
+                    author discorduser NOT NULL,
+                    created_at TIMESTAMP DEFAULT NOW(),
+                    updated_at TIMESTAMP DEFAULT NOW(),
+                    button_links buttonlink[],
+                    used BIGINT DEFAULT 0
+                )
+                """,
+                "CREATE INDEX IF NOT EXISTS tags_guild_id_idx ON tags (guild_id, name)",
+            ]:
+                await self.conn.cursor(
+                    x,
+                )
+
 
         await self.conn.set_type_codec(
             "discorduser",
@@ -65,50 +67,49 @@ class _Tags:
 
     async def get(self, guild_id: int, tag_name: str) -> asyncpg.Record | None:
         """Get a tag."""
-        cursor = await self.conn.cursor(
-            "SELECT content FROM tags WHERE guild_id = %s AND name = %s",
-            (guild_id, tag_name),
+        return await self.conn.fetchrow(
+            "SELECT content FROM tags WHERE guild_id = $1 AND name = $2",
+            guild_id, tag_name,
         )
-        return await cursor.fetchrow()
 
     async def get_all(
         self,
         guild_id: int,
     ) -> AsyncGenerator[asyncpg.Record, asyncpg.Record]:
         """Get all tags."""
-        cursor = self.conn.cursor(
-            "SELECT content FROM tags WHERE guild_id = %s",
-            (guild_id),
+        fetchrow = await self.conn.fetch(
+            "SELECT content FROM tags WHERE guild_id = $1",
+            guild_id,
         )
-        async for row in cursor:
+        for row in fetchrow:
             yield row
 
     async def create(self, guild_id: int, tag_name: str, content: str) -> None:
         """Create a tag."""
-        await self.conn.cursor(
-            "INSERT INTO tags (guild_id, name, content) VALUES (%s, %s, %s)",
-            (guild_id, tag_name, content),
+        await self.conn.execute(
+            "INSERT INTO tags (guild_id, name, content) VALUES ($1, $2, $3)",
+            guild_id, tag_name, content,
         )
 
     async def delete(self, guild_id: int, tag_name: str) -> None:
         """Delete a tag."""
-        await self.conn.cursor(
-            "DELETE FROM tags WHERE guild_id = %s AND name = %s",
-            (guild_id, tag_name),
+        await self.conn.execute(
+            "DELETE FROM tags WHERE guild_id = $1 AND name = $2",
+            guild_id, tag_name,
         )
 
     async def update(self, guild_id: int, tag_name: str, content: str) -> None:
         """Update a tag."""
-        await self.conn.cursor(
-            "UPDATE tags SET content = %s WHERE guild_id = %s AND name = %s",
-            (content, guild_id, tag_name),
+        await self.conn.execute(
+            "UPDATE tags SET content = $1 WHERE guild_id = $2 AND name = $3",
+            content, guild_id, tag_name,
         )
 
     async def update_used_count(self, guild_id: int, tag_name: str) -> None:
         """Update used count."""
-        await self.conn.cursor(
-            "UPDATE tags SET used = used + 1 WHERE guild_id = %s AND name = %s",
-            (guild_id, tag_name),
+        await self.conn.execute(
+            "UPDATE tags SET used = used + 1 WHERE guild_id = $1 AND name = $2",
+            guild_id, tag_name,
         )
 
 
