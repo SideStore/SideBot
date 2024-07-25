@@ -83,7 +83,11 @@ class Admin(BaseCog):
     @default_permissions(manage_messages=True)
     # ruff: noqa: C901, FBT001, FBT002
     async def clean(
-        self, inter: Interaction, count: int, member: Member | None = None, cross_channel: bool = False,
+        self,
+        inter: Interaction,
+        count: int,
+        member: Member | None = None,
+        cross_channel: bool = False,
     ) -> None:
         """Clean `count` messages from optional `member` in the channel it's used."""
         if not isinstance(inter.channel, TextChannel):
