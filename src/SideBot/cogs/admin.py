@@ -96,18 +96,25 @@ class Admin(BaseCog):
                 ephemeral=True,
             )
         await inter.response.defer(ephemeral=True)
+        del_messages: list[Message] = []
         if cross_channel:
-            del_messages = []
+            if inter.guild is None or inter.guild.text_channels is None:
+                return await inter.followup.send(
+                    "No text channels found in the guild.", ephemeral=True
+                )
             for channel in inter.guild.text_channels:
                 async for message in channel.history(limit=200):
                     if len(del_messages) >= count:
                         break
-                    if message.author == member:
+                    if member != None:
+                        if message.author == member:
+                            del_messages.append(message)
+                    else:
                         del_messages.append(message)
-            await inter.guild.delete_messages(del_messages)
+                await channel.delete_messages(del_messages)
+                del_messages = []
             return None
         if member:
-            del_messages: list[Message] = []
             async for message in inter.channel.history(limit=200):
                 if len(del_messages) >= count:
                     break
@@ -146,7 +153,11 @@ class Admin(BaseCog):
     @BaseCog.listener()
     async def on_message(self, message: Message) -> None:
         """Handle messages to detect for spam."""
-        if self.bot.user is None or message.guild is None or message.author.id == self.bot.user.id:
+        if (
+            self.bot.user is None
+            or message.guild is None
+            or message.author.id == self.bot.user.id
+        ):
             return
         if message.author.id not in [su.i for su in self.spammers]:
             self.spammers.append(
@@ -187,7 +198,10 @@ class Admin(BaseCog):
                 if isinstance(chan, TextChannel):
                     del_chans.append(
                         chan.delete_messages(
-                            [chan.get_partial_message(msg.i) for msg in channel.messages],
+                            [
+                                chan.get_partial_message(msg.i)
+                                for msg in channel.messages
+                            ],
                         ),
                     )
             await asyncio.gather(*del_chans)
