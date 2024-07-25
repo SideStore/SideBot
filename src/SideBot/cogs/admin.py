@@ -81,11 +81,9 @@ class Admin(BaseCog):
     @describe(count="Amount of messages to delete")
     @describe(member="The member to delete the messages from")
     @default_permissions(manage_messages=True)
+    # ruff: noqa: C901, FBT001, FBT002
     async def clean(
-        self,
-        inter: Interaction,
-        count: int,
-        member: Member | None = None,
+        self, inter: Interaction, count: int, member: Member | None = None, cross_channel: bool = False,
     ) -> None:
         """Clean `count` messages from optional `member` in the channel it's used."""
         if not isinstance(inter.channel, TextChannel):
@@ -94,6 +92,16 @@ class Admin(BaseCog):
                 ephemeral=True,
             )
         await inter.response.defer(ephemeral=True)
+        if cross_channel:
+            del_messages = []
+            for channel in inter.guild.text_channels:
+                async for message in channel.history(limit=200):
+                    if len(del_messages) >= count:
+                        break
+                    if message.author == member:
+                        del_messages.append(message)
+            await inter.guild.delete_messages(del_messages)
+            return None
         if member:
             del_messages: list[Message] = []
             async for message in inter.channel.history(limit=200):
