@@ -1,5 +1,6 @@
 """The utility cog with various utility commands, listeners, etc."""
 
+import logging
 import random as randomorg
 
 import discord
@@ -7,9 +8,17 @@ from discord import Interaction
 from discord.app_commands import command
 from discord.ext.commands import Bot, Cog
 
+from SideBot.cogs.basecog import BaseCog
 
-class Utility(Cog):
+
+class Utility(BaseCog):
     """The utility cog with various utility commands, listeners, etc."""
+
+    @classmethod
+    async def setup(cls, bot: Bot) -> None:
+        """Initialize the cog and add it to the bot."""
+        logging.getLogger(__name__).info("Initialized %s", cls.__name__)
+        await bot.add_cog(cls(bot))
 
     def __init__(
         self,
@@ -21,7 +30,7 @@ class Utility(Cog):
         self.bot = bot
         self.rare_threshold = rare_threshold
         self.ultra_rare_threshold = ultra_rare_threshold
-        super().__init__()
+        super().__init__(bot)
 
     @command(name="status", description="Get how the bot is currently feeling")
     async def status(self, inter: Interaction) -> None:

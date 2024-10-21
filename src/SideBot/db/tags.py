@@ -1,5 +1,6 @@
 """Tags database module."""
 
+import contextlib
 import datetime
 from collections.abc import AsyncGenerator
 from typing import Any
@@ -12,7 +13,7 @@ from SideBot.utils import ButtonLink, DiscordUser
 class _Tags:
     """Internal DB class for tags."""
 
-    async def write_schema(self) -> None:
+    async def write_schema(self: asyncpg.Connection) -> None:
         for x in [
             """
             CREATE TYPE public.discorduser AS (
@@ -41,9 +42,10 @@ class _Tags:
             """,
             "CREATE INDEX IF NOT EXISTS tags_guild_id_idx ON tags (guild_id, name)",
         ]:
-            await self.conn.execute(
-                x,
-            )
+            with contextlib.suppress(asyncpg.exceptions.DuplicateObjectError):
+                await self.execute(
+                    x,
+                )
 
     def __init__(self, conn: asyncpg.Connection) -> None:
         """Tag database operations."""
@@ -171,12 +173,11 @@ class Tag:
         self.id = ident
         self.tags = _Tags(conn)
 
-    async def finish(
-        self,
-    ) -> "Tag":
+    async def write_schema(
+        self: asyncpg.Connection,
+    ) -> None:
         """Tag class."""
-        await self.tags.write_schema()
-        return self
+        await _Tags.write_schema(self)
 
     @classmethod
     async def get(

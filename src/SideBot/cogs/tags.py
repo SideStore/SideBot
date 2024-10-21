@@ -1,6 +1,7 @@
 """prelimitary tags cog, will be updated later."""
 
 import datetime
+import logging
 import re
 import traceback
 import typing
@@ -9,12 +10,12 @@ import discord
 from discord import app_commands
 from discord.app_commands import command as acommand
 from discord.app_commands import guild_only
+from discord.ext.commands import Bot
 
 from SideBot import SideBot
+from SideBot.cogs.basecog import BaseCog
 from SideBot.db.tags import Tag as DBTag
 from SideBot.utils import ButtonLink, DiscordUser
-
-from .basecog import BaseCog
 
 
 class UpdateTagsModal(discord.ui.Modal, title="Update a Tag"):
@@ -182,6 +183,12 @@ class CreateTagsModal(discord.ui.Modal, title="Create a Tag"):
 
 class Tags(BaseCog):
     """Tags cog with commands for tags."""
+
+    @classmethod
+    async def setup(cls, bot: Bot) -> None:
+        """Initialize the cog and add it to the bot."""
+        logging.getLogger(__name__).info("Initialized %s", cls.__name__)
+        await bot.add_cog(cls(bot))
 
     def prepare_tag_view(self, button_links: list[ButtonLink]) -> discord.ui.View:
         """Prepare the tag view."""

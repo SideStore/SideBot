@@ -1,6 +1,7 @@
 """Admin cog with commands for moderation."""
 
 import asyncio
+import logging
 from datetime import timedelta
 
 import discord
@@ -68,6 +69,12 @@ class SpamUser:
 
 class Admin(BaseCog):
     """Admin cog with commands for moderation."""
+
+    @classmethod
+    async def setup(cls, bot: Bot) -> None:
+        """Initialize the cog and add it to the bot."""
+        logging.getLogger(__name__).info("Initialized %s", cls.__name__)
+        await bot.add_cog(cls(bot))
 
     def __init__(self, bot: Bot, channels_max: int = 4) -> None:
         """Initialize the cog with the bot and the maximum channels to check."""

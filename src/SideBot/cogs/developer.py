@@ -1,5 +1,6 @@
 """The developer cog for loading/reloading/unloading cogs and syncing app commands."""
 
+import logging
 from typing import Literal
 
 import discord
@@ -24,6 +25,12 @@ from .basecog import BaseCog
 
 class Developer(BaseCog):
     """Developer cog with developer only commands."""
+
+    @classmethod
+    async def setup(cls, bot: Bot) -> None:
+        """Initialize the cog and add it to the bot."""
+        logging.getLogger(__name__).info("Initialized %s", cls.__name__)
+        await bot.add_cog(cls(bot))
 
     def __init__(self, bot: Bot) -> None:
         """Initialize the developer cog."""

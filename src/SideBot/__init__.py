@@ -10,6 +10,8 @@ import discord
 from discord.ext import commands
 from discord.ext.commands import AutoShardedBot, Bot, when_mentioned_or
 
+from SideBot.db.tags import Tag
+
 from .utils import ButtonLink, DiscordUser
 
 
@@ -53,6 +55,8 @@ class SideBot(Bot):
                 self.user.id,
             )
             self.connection: asyncpg.Connection = await self.setup_connection()
+
+            await Tag.write_schema(self.connection)
 
             await self.connection.set_type_codec(
                 "discorduser",
