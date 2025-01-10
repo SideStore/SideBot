@@ -13,7 +13,8 @@ from SideBot.utils import ButtonLink, DiscordUser
 class _Tags:
     """Internal DB class for tags."""
 
-    async def write_schema(self: asyncpg.Connection) -> None:
+    @staticmethod
+    async def write_schema(conn: asyncpg.Connection) -> None:
         for x in [
             """
             CREATE TYPE public.discorduser AS (
@@ -43,7 +44,7 @@ class _Tags:
             "CREATE INDEX IF NOT EXISTS tags_guild_id_idx ON tags (guild_id, name)",
         ]:
             with contextlib.suppress(asyncpg.exceptions.DuplicateObjectError):
-                await self.execute(
+                await conn.execute(
                     x,
                 )
 
@@ -173,11 +174,12 @@ class Tag:
         self.id = ident
         self.tags = _Tags(conn)
 
+    @staticmethod
     async def write_schema(
-        self: asyncpg.Connection,
+        conn: asyncpg.Connection,
     ) -> None:
         """Tag class."""
-        await _Tags.write_schema(self)
+        await _Tags.write_schema(conn)
 
     @classmethod
     async def get(

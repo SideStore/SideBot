@@ -30,7 +30,7 @@ class DBConfig:
         }
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls, data: dict) -> "DBConfig":
         return cls(
             data["user"],
             data["pass"],
@@ -52,7 +52,7 @@ class BotConfig:
         self.cogs = cogs
 
     @classmethod
-    def from_dict(cls, data: dict):
+    def from_dict(cls, data: dict) -> "BotConfig":
         if "botDB" in data:
             return cls(data["discordToken"], data["owner"], DBConfig.from_dict(data["botDB"]).connect_str, data["cogs"])
         return cls(data["discordToken"], data["owner"], data["botDBURL"], data["cogs"])
