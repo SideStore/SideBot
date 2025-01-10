@@ -5,16 +5,10 @@ import discord
 
 class DBConfig:
     """DBConfig class for Postgresql with Bot"""
-    __slot__ = ('user', 'password', 'host', 'port', 'name')
 
-    def __init__(
-        self,
-        user: str,
-        password: str,
-        host: str,
-        port: int | None = None,
-        name: str | None = None
-    ):
+    __slot__ = ("user", "password", "host", "port", "name")
+
+    def __init__(self, user: str, password: str, host: str, port: int | None = None, name: str | None = None):
         self.user = user
         self.password = password
         self.host = host
@@ -28,34 +22,30 @@ class DBConfig:
     @property
     def as_dict(self):
         return {
-            'user': self.user,
-            'pass': self.password,
-            'host': self.host,
-            'port': self.port,
-            'name': self.name,
+            "user": self.user,
+            "pass": self.password,
+            "host": self.host,
+            "port": self.port,
+            "name": self.name,
         }
 
     @classmethod
     def from_dict(cls, data: dict):
         return cls(
-            data['user'],
-            data['pass'],
-            data['host'],
-            data['port'] if 'port' in data else None,
-            data['name'] if 'name' in data else data['user']
+            data["user"],
+            data["pass"],
+            data["host"],
+            data["port"] if "port" in data else None,
+            data["name"] if "name" in data else data["user"],
         )
+
 
 class BotConfig:
     """BotConfig class for SideBot"""
-    __slots__ = ('token', 'owner', 'db_url', 'cogs')
 
-    def __init__(
-        self,
-        token: str,
-        owner: int,
-        db_url: str,
-        cogs: list[str]
-    ):
+    __slots__ = ("token", "owner", "db_url", "cogs")
+
+    def __init__(self, token: str, owner: int, db_url: str, cogs: list[str]):
         self.token = token
         self.owner = owner
         self.db_url = db_url
@@ -63,19 +53,9 @@ class BotConfig:
 
     @classmethod
     def from_dict(cls, data: dict):
-        if 'botDB' in data:
-            return cls(
-                data['discordToken'],
-                data['owner'],
-                DBConfig.from_dict(data['botDB']).connect_str,
-                data['cogs']
-            )
-        return cls(
-            data['discordToken'],
-            data['owner'],
-            data['botDBURL'],
-            data['cogs']
-        )
+        if "botDB" in data:
+            return cls(data["discordToken"], data["owner"], DBConfig.from_dict(data["botDB"]).connect_str, data["cogs"])
+        return cls(data["discordToken"], data["owner"], data["botDBURL"], data["cogs"])
 
 
 class DiscordUser:

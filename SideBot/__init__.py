@@ -2,7 +2,6 @@
 
 # pylint: disable=C0103,C0114
 import logging
-import pathlib
 import typing
 
 import yaml
@@ -99,5 +98,5 @@ class SideBot(Bot):
 
     @classmethod
     def from_yaml_file(cls, path: str = "conf.yaml") -> "SideBot":
-        with open(path, 'r') as f:
+        with open(path, "r") as f:
             return cls(yaml.safe_load(f))
