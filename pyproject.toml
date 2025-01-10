@@ -25,6 +25,7 @@ dev = [
     "mypy>=1.9.0",
     "ruff>=0.3.7",
     "pyannotate>=1.2.0",
+    "types-PyYAML>=6.0.12"
 ]
 
 [tool.setuptools.package-data]
