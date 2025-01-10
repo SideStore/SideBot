@@ -2,4 +2,4 @@
 
 from . import SideBot
 
-SideBot.from_env().run()
+SideBot.from_yaml_file().run()

@@ -6,6 +6,7 @@ dist/
 build/
 .venv
 .env*
+conf.yaml
 tags
 __pycache__
 *.egg-info/

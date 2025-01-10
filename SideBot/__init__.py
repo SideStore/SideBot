@@ -5,6 +5,7 @@ import logging
 import pathlib
 import typing
 
+import yaml
 import asyncpg
 import discord
 from discord.ext import commands
@@ -12,7 +13,7 @@ from discord.ext.commands import AutoShardedBot, Bot, when_mentioned_or
 
 from SideBot.db.tags import Tag
 
-from .utils import ButtonLink, DiscordUser
+from .utils import ButtonLink, DiscordUser, BotConfig
 
 
 class SideBot(Bot):
@@ -20,8 +21,7 @@ class SideBot(Bot):
 
     def __init__(self, config: dict[str, str]) -> None:
         """Initialize the bot with the given configuration."""
-        self.__tok = config.pop("DTOKEN")
-        self.config = config
+        self.config = BotConfig.from_dict(config)
         self.logger = logging.getLogger(__name__)
 
         intents = discord.Intents.all()
@@ -31,16 +31,16 @@ class SideBot(Bot):
             intents=intents,
         )
 
-        self.owner_id = int(self.config["OWNER"])
-        self.conf_cogs = self.config["COGS"].split(",")
+        self.owner_id = self.config.owner
+        self.conf_cogs = self.config.cogs
 
     async def setup_connection(self) -> asyncpg.Connection:
         """Set up the database connection."""
-        return await asyncpg.connect(self.config["DATABASE_URL"])
+        return await asyncpg.connect(self.config.db_url)
 
     async def setup_hook(self) -> None:
         """Set up cogs and app commands."""
-        for cog in self.conf_cogs:
+        for cog in self.config.cogs:
             await self.load_extension(f"SideBot.cogs.{cog}")
         self.logger.debug(self.extensions)
         self.logger.debug(self.tree.get_commands())
@@ -55,6 +55,7 @@ class SideBot(Bot):
                 self.user.id,
             )
             self.connection: asyncpg.Connection = await self.setup_connection()
+            self.logger.info("Connected to postgresql!")
 
             await Tag.write_schema(self.connection)
 
@@ -94,14 +95,9 @@ class SideBot(Bot):
         """Run the bot with the given token."""
         if token:
             return super().run(token, *args, root_logger=True, **kwargs)
-        return super().run(self.__tok, *args, root_logger=True, **kwargs)
+        return super().run(self.config.token, *args, root_logger=True, **kwargs)
 
     @classmethod
-    def from_env(cls, path: str = ".env") -> "SideBot":
-        """Load the bot from a .env file with the proper configuration."""
-        with pathlib.Path(path).open(encoding="utf-8") as env:
-            conf = {
-                k: v for line in env if (k := line.strip().split("=", 1)[0]) and (v := line.strip().split("=", 1)[1])
-            }
-
-        return cls(conf)
+    def from_yaml_file(cls, path: str = "conf.yaml") -> "SideBot":
+        with open(path, 'r') as f:
+            return cls(yaml.safe_load(f))

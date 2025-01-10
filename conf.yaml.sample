@@ -1,0 +1,16 @@
+owner: 195864152856723456
+cogs:
+- admin
+- developer
+- tags
+- utility
+discordToken: 111111111111111111111111111111111111111111111111111111111111111111111111
+botDBURL: postgresql://sidebot:password@127.0.0.1:5432/sidebot
+# or
+botDB:
+  user: sidebot
+  pass: password
+  host: 127.0.0.1
+  # Optional
+  port: 5432
+  name: sidebot
