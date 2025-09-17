@@ -1,0 +1,12 @@
+[project]
+name = "SideBot"
+version = "0.0.0"
+description = "The Discord bot for the SideStore server."
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "aiosqlite>=0.21.0",
+    "arrow>=1.3.0",
+    "discord-py==2.6.0",
+]
+
